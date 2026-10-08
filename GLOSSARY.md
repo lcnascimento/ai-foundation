@@ -33,11 +33,14 @@ A named development philosophy (e.g. "subtract before you add") the user wants a
 _Avoid_: rule (a Principle may or may not be delivered as a Rule)
 
 **Community skill**:
-A skill authored outside this repo and adopted as-is.
+A skill vendored from an Upstream and kept identical to it at the pinned commit, except for provenance frontmatter.
 _Avoid_: third-party skill, external skill
 
 **Custom skill**:
-A skill authored in this repo, possibly derived from a Community skill.
+A skill authored in this repo, or a Community skill edited beyond its provenance frontmatter (a derived skill).
+
+**Upstream**:
+The external repository and pinned commit a Community skill or derived Custom skill was copied from.
 
 ### Projects
 

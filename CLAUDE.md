@@ -14,4 +14,4 @@ Issues live in Linear (team **AI Foundation**, key `AI`), accessed via the Linea
 
 ### Domain docs
 
-Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Single-context: one `GLOSSARY.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
