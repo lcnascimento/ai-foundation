@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-marketplace.json",
+  "name": "ai-foundation",
+  "owner": {
+    "name": "lcnascimento",
+    "url": "https://github.com/lcnascimento"
+  },
+  "version": "0.1.0",
+  "description": "Personal AI development infrastructure for Claude Code: skills, rules, MCPs and agents, organized as installable domain plugins.",
+  "metadata": {
+    "pluginRoot": "plugins"
+  },
+  "plugins": [
+    {
+      "name": "foundation",
+      "source": "./plugins/foundation",
+      "description": "Base plugin: shared skills and philosophy rules every other plugin depends on."
+    },
+    {
+      "name": "engineering",
+      "source": "./plugins/engineering",
+      "description": "Engineering skills, rules and MCPs."
+    }
+  ]
+}

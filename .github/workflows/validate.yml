@@ -1,0 +1,30 @@
+name: Validate marketplace
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Validate marketplace manifest
+        run: claude plugin validate .
+
+      - name: Validate each plugin
+        run: |
+          set -euo pipefail
+          for dir in plugins/*/; do
+            echo "== ${dir} =="
+            claude plugin validate "${dir%/}"
+          done

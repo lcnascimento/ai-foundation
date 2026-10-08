@@ -1,0 +1,11 @@
+{
+  "name": "engineering",
+  "version": "0.1.0",
+  "description": "Engineering skills, rules and MCPs.",
+  "author": {
+    "name": "lcnascimento"
+  },
+  "license": "MIT",
+  "dependencies": ["foundation"],
+  "defaultEnabled": false
+}

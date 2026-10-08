@@ -1,0 +1,10 @@
+{
+  "name": "foundation",
+  "version": "0.1.0",
+  "description": "Base plugin: shared skills and philosophy rules every other plugin depends on.",
+  "author": {
+    "name": "lcnascimento"
+  },
+  "license": "MIT",
+  "defaultEnabled": true
+}
