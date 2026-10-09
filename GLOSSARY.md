@@ -54,6 +54,9 @@ A finite deliverable inside a Project's issue tracker, possibly spanning several
 **Project setup**:
 The per-Project configuration (issue tracker, forge, docs backend, Project language) that skills read instead of hard-coding tools.
 
+**Forge**:
+The platform hosting a Project's git repository and its code workflow: pull/merge requests, review, CI and releases (GitHub, GitLab). Distinct from the issue tracker.
+
 **Docs backend**:
 Where a Project's ADRs and Divio docs live: the repo (default) or Notion.
 
