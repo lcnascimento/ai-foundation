@@ -46,6 +46,10 @@ The external repository and pinned commit a Community skill or derived Custom sk
 
 **Project**:
 A personal repository that installs the Marketplace's plugins; distinct from this repo.
+_Avoid_: Linear project
+
+**Linear project**:
+A finite deliverable inside a Project's issue tracker, possibly spanning several domains.
 
 **Project setup**:
 The per-Project configuration (issue tracker, forge, docs location) that skills read instead of hard-coding tools.
