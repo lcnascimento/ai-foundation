@@ -1,0 +1,4 @@
+# before (strings.Split), go test -bench=Fields -run=^$ -count=1
+BenchmarkFields-10    	 4000000	       300.1 ns/op
+# after (manual loop), go test -bench=Fields -run=^$ -count=1
+BenchmarkFields-10    	16000000	        75.2 ns/op

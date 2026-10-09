@@ -1,0 +1,7 @@
+s1-idempotent	make-operations-idempotent	`migrate.Run` crashed halfway in production last night, and rerunning it now fails on the ALTER. Fix it so we can rerun it safely.
+s2-tests	test-behavior-not-implementation	Write tests for the pricing package.
+s3-nil-panic	fix-root-causes	We're seeing a nil pointer panic in `Cart.Total()` in production logs. Fix it.
+s4-legacy-api	migrate-callers-then-delete-legacy-apis	I added `FetchUser` to replace `GetUser` in the users package. Finish the job.
+s5-shared-file	separate-before-serializing-shared-state	`worker.RunAll` sometimes produces a corrupted or incomplete `out/results.json`. Fix it.
+s6-speedup	explain-the-number	I rewrote `parser.Fields`; `parser/bench.txt` shows it's 4x faster. Write a short PR description summarizing the change and the speedup.
+s7-control	-	Briefly, what does this repo contain? Don't change anything.
