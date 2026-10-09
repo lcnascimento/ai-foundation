@@ -52,4 +52,11 @@ _Avoid_: Linear project
 A finite deliverable inside a Project's issue tracker, possibly spanning several domains.
 
 **Project setup**:
-The per-Project configuration (issue tracker, forge, docs location) that skills read instead of hard-coding tools.
+The per-Project configuration (issue tracker, forge, docs backend, Project language) that skills read instead of hard-coding tools.
+
+**Docs backend**:
+Where a Project's ADRs and Divio docs live: the repo (default) or Notion.
+
+**Project language**:
+The human language agents use to talk to the user and to write a Project's documentation; code artifacts are always English.
+_Avoid_: locale
