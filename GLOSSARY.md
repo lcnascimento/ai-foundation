@@ -58,7 +58,11 @@ The per-Project configuration (issue tracker, forge, docs backend, Project langu
 The platform hosting a Project's git repository and its code workflow: pull/merge requests, review, CI and releases (GitHub, GitLab). Distinct from the issue tracker.
 
 **Docs backend**:
-Where a Project's ADRs and Divio docs live: the repo (default) or Notion.
+Where a Project's documents live: the repo (default) or Notion.
+
+**Document type**:
+The kind of a Project document (`adr`, `tutorial`, `how-to`, `reference`, `explanation`; Domain plugins may add more), named identically in its issue label, its repo directory and its Notion page.
+_Avoid_: quadrant, doc category
 
 **Project language**:
 The human language agents use to talk to the user and to write a Project's documentation; code artifacts are always English.

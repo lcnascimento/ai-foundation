@@ -8,7 +8,7 @@
 - `.mcp.json`: Linear with `Bearer ${LINEAR_API_KEY}`, and the hosted Notion MCP over OAuth when the Notion backend is on.
 - `.envrc` reading a git-ignored `.env`, so each Project on a machine gets its own tokens through direnv. Setup never writes a secret.
 
-Through the MCPs it also provisions what they can create, idempotently: the Linear labels (ADR-0003) and the Notion page/database tree (ADR-0005). It hands the user a checklist for the rest: the workspace, the team, the In Review status, tokens, and the OAuth grant.
+Through the MCPs it also provisions what they can create, idempotently: the Linear labels (ADR-0003, including one `document` child per enabled Document type) and the Notion page/database tree (ADR-0005, one page per enabled Document type). It also writes the wayfinder rule for `document:*` tickets into `issue-tracker.md` (ADR-0012). It hands the user a checklist for the rest: the workspace, the team, the In Review status, tokens, and the OAuth grant.
 
 Bootstrap: once per machine, the user adds the Marketplace and installs `foundation` at user scope, then runs `/setup-ai-foundation` in the Project, which pins everything else at project scope so other machines and cloud sessions receive it.
 

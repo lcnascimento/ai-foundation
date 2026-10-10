@@ -16,3 +16,4 @@ Separately, Project setup records a **Project language**. Agents use it to talk 
 - `domain-modeling` (`ADR-FORMAT.md` plus its file-structure section) and `improve-codebase-architecture` (one line) become derived Custom skills that read and write ADRs wherever `domain.md` says, defaulting to `docs/adr/`. Each Upstream update to them is a manual merge.
 - With Notion on, agents read ADRs and docs through the Notion MCP, which has a context cost and, on the free plan, a 3 req/s limit. Whether it works headless or in cloud sessions with a workspace per Project is still open.
 - `setup-ai-foundation` asks for the docs backend and the Project language and writes both into the contract files.
+- Amended by ADR-0012: repo directories are singular (`docs/{adr,tutorial,how-to,reference,explanation}/`), the ADR format moves to `foundation:documentation`, and `domain-modeling` and `improve-codebase-architecture` point to that skill instead of reading the backend themselves.

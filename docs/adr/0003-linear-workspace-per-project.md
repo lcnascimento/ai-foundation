@@ -7,6 +7,7 @@ All labels live at workspace level, lowercase:
 - `type` (single-select): `bug`, `feature`, `improvement`, `chore`; other domains add their own values. mattpocock's `triage` category roles map `bug` → `bug`, `enhancement` → `feature`.
 - `triage` (single-select): the five canonical state roles (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`), mapped 1:1 in `docs/agents/triage-labels.md`.
 - `wayfinder:*`: flat prefixed labels, so the names skills filter by stay unambiguous.
+- `document` (single-select): one child per Document type (`adr`, `tutorial`, `how-to`, `reference`, `explanation`); an issue that delivers a document carries it instead of `type` (ADR-0012).
 
 ## Considered Options
 
