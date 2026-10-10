@@ -20,7 +20,7 @@ repo="$(cd "$(dirname "$0")/.." && pwd)"
 canonical="$repo/plugins/foundation/hooks/principles-index.sh"
 total_cap=10000
 # Per-plugin budgets leave room for the other plugins in the shared cap.
-budget() { case "$1" in foundation) echo 3000 ;; *) echo "$total_cap" ;; esac; }
+budget() { case "$1" in foundation) echo 3000 ;; engineering) echo 7000 ;; *) echo "$total_cap" ;; esac; }
 
 if [ "$#" -gt 0 ]; then
   plugins=("$@")
