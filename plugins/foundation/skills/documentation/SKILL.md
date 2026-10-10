@@ -90,24 +90,28 @@ Reply with the path or URL. When an issue labelled `document:<type>` asked for t
 
 ## Notion backend
 
-`docs/agents/domain.md` holds a `## Docs backend: notion` section naming the Notion workspace and mapping each Document type to its database ID, one row per enabled type:
+`docs/agents/domain.md` holds a `## Docs backend: notion` section, written by `/setup-ai-foundation`, naming the workspace, the Project's Notion MCP server and the domain page, and mapping each enabled Document type to its page, database and data source:
 
 ```markdown
 ## Docs backend: notion
 
-Workspace: <workspace name>
+- **Workspace**: <workspace name>
+- **MCP server**: `<server>` (tools `mcp__<server>__*`, OAuth sign-in per Project)
+- **Domain page**: <domain page title> (`<page ID>`)
 
-| Document type | Database ID |
-| - | - |
-| adr | <id> |
-| tutorial | <id> |
+| Document type | Page | Database ID | Data source |
+| - | - | - | - |
+| `adr` | ADRs | `<database ID>` | `collection://<data source ID>` |
+| `tutorial` | Tutoriais | `<database ID>` | `collection://<data source ID>` |
 ```
 
-- Talk to Notion through the Project's Notion MCP server, the one `.mcp.json` declares (its tools are `mcp__<server name>__*`). Use no other Notion connection: it may point at another Project's workspace.
+- Talk to Notion only through the `MCP server` line's server (tools `mcp__<server>__*`). Use no other Notion connection: it may point at another Project's workspace.
+- Read: `notion-fetch` a database or document by ID; `notion-query-data-sources` on the type's data source to list documents.
+- Write: `notion-create-pages` with the type's data source as parent, Markdown content; `notion-update-page` to edit.
 - Each document is one page inside its type's database. Read the database's schema first and fill its title property and any property it requires.
 - ADRs: the database's Unique ID property numbers them (`ADR-1`, `ADR-2`, …). Leave it to Notion and cite ADRs by that ID.
 - Before creating a page, search the type's database for the same topic. An existing page gets edited, not duplicated.
-- A type with no database ID in `domain.md` has no place in this backend: stop and suggest re-running `/setup-ai-foundation` with that type enabled.
+- A type with no row in `domain.md`, or whose IDs read `pending`, has no place in this backend: stop and suggest re-running `/setup-ai-foundation` with that type enabled.
 - Mermaid goes in a `mermaid` code block, which Notion renders.
 - When the Notion MCP server is unavailable (no OAuth yet, a cloud session), stop and say so. Never fall back to writing the document in the repo.
 
