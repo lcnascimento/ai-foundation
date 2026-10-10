@@ -175,7 +175,7 @@ print(s.getsockname()[1], flush=True)
 time.sleep(60)
 ' > "$tmp/hang.port" &
 hang_pid=$!
-trap '{ kill $hang_pid; wait $hang_pid; } 2>/dev/null; rm -rf "$tmp"' EXIT
+trap '{ kill $hang_pid; wait $hang_pid; } 2>/dev/null || true; rm -rf "$tmp"' EXIT
 for _ in $(seq 50); do [ -s "$tmp/hang.port" ] && break; sleep 0.1; done
 net_case "hung Upstream host stops at the deadline" "timed out" "http://127.0.0.1:$(cat "$tmp/hang.port")"
 
