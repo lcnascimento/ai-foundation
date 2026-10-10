@@ -131,9 +131,11 @@ Community and derived skills carry `license` and `metadata.*` provenance in thei
 Upstream `LICENSE` next to them ([ADR-0001](./docs/adr/0001-vendor-community-skills.md),
 [ADR-0010](./docs/adr/0010-stack-skills-rewrite-community-content.md)).
 
-`writing-for-agents` (from `mattpocock-skills`) and `skill-creator` are tools for authoring this repo, so
-they are enabled only here, at project scope, in [.claude/settings.json](./.claude/settings.json). They are
-not part of any plugin.
+`writing-for-agents` (from `mattpocock-skills`) and `skill-creator` are tools for authoring this repo and
+are not part of any plugin. `skill-creator` is enabled only here, at project scope, in
+[.claude/settings.json](./.claude/settings.json). `mattpocock-skills` is not enabled here, since its other
+skills would compete with the vendored copies for routing; load `writing-for-agents` from a separate install
+when needed.
 
 ### Releasing
 
