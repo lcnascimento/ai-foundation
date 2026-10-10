@@ -19,12 +19,15 @@ jobs:
         run: npm install -g @anthropic-ai/claude-code
 
       - name: Validate marketplace manifest
-        run: claude plugin validate .
+        run: claude plugin validate --strict .
 
       - name: Validate each plugin
         run: |
           set -euo pipefail
           for dir in plugins/*/; do
             echo "== ${dir} =="
-            claude plugin validate "${dir%/}"
+            claude plugin validate --strict "${dir%/}"
           done
+
+      - name: Smoke install in an isolated CLAUDE_CONFIG_DIR
+        run: scripts/smoke-install.sh

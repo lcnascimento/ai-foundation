@@ -5,21 +5,21 @@
     "name": "lcnascimento",
     "url": "https://github.com/lcnascimento"
   },
-  "version": "0.1.0",
-  "description": "Personal AI development infrastructure for Claude Code: skills, rules, MCPs and agents, organized as installable domain plugins.",
+  "description": "Personal AI development infrastructure for Claude Code: a foundation plugin for every Project and domain plugins on top of it.",
   "metadata": {
     "pluginRoot": "plugins"
   },
+  "allowCrossMarketplaceDependenciesOn": ["claude-plugins-official"],
   "plugins": [
     {
       "name": "foundation",
       "source": "./plugins/foundation",
-      "description": "Base plugin: shared skills and philosophy rules every other plugin depends on."
+      "description": "Skills for any domain (thinking, research, planning with wayfinder, prototyping, documentation), the universal Principles index, the git guardrail and the setup-ai-foundation Project setup."
     },
     {
       "name": "engineering",
       "source": "./plugins/engineering",
-      "description": "Engineering skills, rules and MCPs."
+      "description": "Engineering SDLC: investigation, spec, tickets, TDD, orchestrated implementation, layered verification, conformance review, debugging and PRs, plus engineering Principles, Go and Next.js stack skills and Context7."
     }
   ]
 }
