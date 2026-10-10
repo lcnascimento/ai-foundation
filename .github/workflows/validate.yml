@@ -35,6 +35,31 @@ jobs:
       - name: Test the git guardrail hook
         run: python3 tests/hooks/test_git_guardrail.py
 
+  principles-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PyYAML
+        run: python3 -c 'import yaml' 2>/dev/null || sudo apt-get install -y python3-yaml
+
+      - name: Principles index hook contract
+        run: tests/principles-index.test.sh
+
+  provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PyYAML
+        run: python3 -c 'import yaml' 2>/dev/null || sudo apt-get install -y python3-yaml
+
+      - name: Provenance check tests
+        run: tests/check-provenance.test.sh
+
+      - name: Provenance of vendored and derived skills
+        run: scripts/check-provenance.py
+
   version-bump:
     # ADR-0006: a plugin change without a version bump ships nothing.
     if: github.event_name == 'pull_request'
