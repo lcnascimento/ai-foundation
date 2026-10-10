@@ -80,6 +80,11 @@ new_repo new-plugin
 set_version design 0.1.0 && touch_file plugins/design/skills/x/SKILL.md && commit add
 expect pass "new plugin needs no prior version"
 
+new_repo bad-base-version
+git checkout --quiet main && set_version foundation 1.0 && commit bad && git checkout --quiet -B pr main
+touch_file plugins/foundation/a.md && set_version foundation 1.0.1 && commit change
+expect fail "non-semver base version fails with a clear message" "base version '1.0' is not X.Y.Z"
+
 new_repo removed-plugin
 git rm --quiet -r plugins/engineering && commit remove
 expect pass "removed plugin passes"
