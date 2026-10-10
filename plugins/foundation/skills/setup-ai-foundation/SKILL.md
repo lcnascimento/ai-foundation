@@ -20,7 +20,7 @@ Each section is a file in `sections/` holding its questions, the files it render
 | [language](sections/language.md) | always |
 | [issue-tracker](sections/issue-tracker.md) | always |
 | [linear-labels](sections/linear-labels.md) | always; provisions Linear labels through MCP instead of writing files |
-| [docs-backend](sections/docs-backend.md) | always |
+| [docs-backend](sections/docs-backend.md) | always; with `notion`, also provisions the Notion tree through MCP |
 | [forge](sections/forge.md) | `engineering` is enabled |
 | [environment](sections/environment.md) | `engineering` is enabled |
 | [verify](sections/verify.md) | `engineering` is enabled |
@@ -69,7 +69,7 @@ Exit 0 means the file is unchanged: list it as unchanged and leave it out of the
 grep -rnE 'lin_api_|ntn_|secret_|gh[pousr]_|glpat-|Bearer [^$]' "$stage"
 ```
 
-A section that provisions through MCP (linear-labels) shows its plan here instead of a file diff.
+A section that provisions through MCP (linear-labels, and docs-backend with `notion`) shows its plan here next to the file diffs.
 
 Done when every rendered file is either listed as unchanged or has its diff shown, every provisioning plan is shown, and the secret check printed nothing.
 
