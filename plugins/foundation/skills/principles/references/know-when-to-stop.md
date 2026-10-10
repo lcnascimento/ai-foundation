@@ -1,6 +1,6 @@
 ---
 name: know-when-to-stop
-description: "Apply before an irreversible or outward-facing action (force-push, push or merge to the default branch, release, deploy, deleting data, messaging third parties, publishing), at a dead end after exhausting every source, or on an ambiguity about outcome or product direction that no reading or prototype settles. Only these three stop the work; raise everything at once."
+description: "Apply before an irreversible or outward-facing action (force-push, merge to the default branch, release, deploy, deleting data, messaging third parties), at a dead end after exhausting every source, or on an outcome or product ambiguity nothing settles. Stop only for these; raise all at once."
 ---
 
 # Know When to Stop
