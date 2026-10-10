@@ -115,5 +115,18 @@ else
   failures=$((failures + 1))
 fi
 
+# A tag created locally whose push failed is pushed on the next run, not skipped.
+set_version foundation 0.2.0 && commit bump-foundation && git push --quiet origin main
+git tag -a foundation--v0.2.0 -m "foundation 0.2.0" # as if the earlier push had failed
+out="$("$scripts/tag-releases.sh")"
+if git ls-remote --tags --refs origin | grep -q 'refs/tags/foundation--v0.2.0$' &&
+  [[ "$out" == *"push foundation--v0.2.0"* && "$out" == *"skip engineering--v0.2.0"* ]]; then
+  echo "ok - pushes a local tag missing on the remote"
+else
+  echo "not ok - tag-releases retry"
+  sed 's/^/    /' <<<"$out"
+  failures=$((failures + 1))
+fi
+
 ((failures == 0)) || { echo "$failures failing"; exit 1; }
 echo "all passed"
