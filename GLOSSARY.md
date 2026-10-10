@@ -25,12 +25,12 @@ An opt-in plugin scoped to one area of work (engineering, marketing, business), 
 A `SKILL.md` capability loaded on demand when its description matches the task or the user invokes it.
 
 **Rule**:
-Guidance injected into every session's context, always on.
+Guidance a plugin injects into every session's context through a hook, always on. Per-Project guidance written into a Project's `CLAUDE.md` by Project setup is not a Rule.
 _Avoid_: guideline, policy
 
 **Principle**:
 A named development philosophy (e.g. "subtract before you add") the user wants agents to follow.
-_Avoid_: rule (a Principle may or may not be delivered as a Rule)
+_Avoid_: rule (a Principle reaches every session only as one line of the Principles index, which is a Rule; its text loads on demand)
 
 **Community skill**:
 A skill vendored from an Upstream and kept identical to it at the pinned commit, except for provenance frontmatter.

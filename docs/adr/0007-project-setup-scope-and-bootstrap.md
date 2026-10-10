@@ -2,8 +2,8 @@
 
 `setup-ai-foundation` is a single skill in `foundation`, invoked only by the user (`disable-model-invocation: true`), and it replaces both `setup-matt-pocock-skills` and `setup-pstack`. It runs idempotently and shows a diff per file. Its sections depend on which plugins are enabled; for example, the forge section appears only with `engineering`. It writes:
 
-- `CLAUDE.md`/`AGENTS.md`: the `## Agent skills` block (mattpocock contract, ADR-0002) plus a `## Language` section holding the Project language, which is always in context, so subagents and skills that never open `docs/agents/` still follow it.
-- `docs/agents/issue-tracker.md` (Linear), `triage-labels.md`, `domain.md` (docs backend, plus Notion IDs, ADR-0005), and `forge.md` (forge, CLI `gh`/`glab`, host, PR and CI conventions; the default is proposed from `git remote` but stored, never inferred at runtime).
+- `CLAUDE.md`/`AGENTS.md`: the `## Agent skills` block (mattpocock contract, ADR-0002, plus a `### Forge` entry pointing to `forge.md`) plus a `## Language` section holding the Project language, which is always in context, so subagents and skills that never open `docs/agents/` still follow it.
+- `docs/agents/issue-tracker.md` (Linear), `triage-labels.md`, `domain.md` (docs backend, plus Notion IDs, ADR-0005), and `forge.md` (forge, CLI `gh`/`glab`, host, commit, PR and CI conventions; the forge default is proposed from `git remote` but stored, never inferred at runtime, and the commit default is "follow the style of `git log`; with no history, an imperative sentence without a prefix", with Conventional Commits offered as an option).
 - `.claude/settings.json`: `extraKnownMarketplaces` with `autoUpdate`, and `enabledPlugins` (ADR-0006).
 - `.mcp.json`: Linear with `Bearer ${LINEAR_API_KEY}`, and the hosted Notion MCP over OAuth when the Notion backend is on.
 - `.envrc` reading a git-ignored `.env`, so each Project on a machine gets its own tokens through direnv. Setup never writes a secret.
@@ -27,3 +27,4 @@ Bootstrap: once per machine, the user adds the Marketplace and installs `foundat
 - Re-running setup is the migration path: a major that changes the contract tells users, in its `CHANGELOG.md`, to re-run it.
 - Skills that find the contract missing suggest `/setup-ai-foundation` to the user; they never run it.
 - Machines need direnv installed.
+- Per-Project always-on guidance (language, where the contract files live, commit conventions) reaches the agent through the `CLAUDE.md` this setup writes, not through a plugin Rule (ADR-0004).
