@@ -57,4 +57,21 @@ for plugin in "${plugins[@]}"; do
   done
 done
 
+# Every hook event a plugin declares in hooks/hooks.json must load with it.
+for plugin in "${plugins[@]}"; do
+  hooks_json="$repo/plugins/$plugin/hooks/hooks.json"
+  [[ -f "$hooks_json" ]] || continue
+  details="$(claude plugin details "$plugin@$marketplace")"
+  hooks_line="$(echo "$details" | grep -E '^ *Hooks \(' || true)"
+  for event in $(jq -r '.hooks | keys[]' "$hooks_json"); do
+    if echo "$hooks_line" | grep -qw "$event"; then
+      echo "ok: $plugin@$marketplace registers a $event hook"
+    else
+      echo "FAIL: $plugin@$marketplace does not register its $event hook" >&2
+      echo "$details" >&2
+      fail=1
+    fi
+  done
+done
+
 exit "$fail"
