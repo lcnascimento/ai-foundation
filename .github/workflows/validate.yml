@@ -31,3 +31,36 @@ jobs:
 
       - name: Smoke install in an isolated CLAUDE_CONFIG_DIR
         run: scripts/smoke-install.sh
+
+  version-bump:
+    # ADR-0006: a plugin change without a version bump ships nothing.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Test release scripts
+        run: scripts/test-release-checks.sh
+
+      - name: Require a version bump in each changed plugin
+        run: scripts/check-version-bump.sh "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+
+  tag-releases:
+    # ADR-0006: tag each released plugin as <plugin>--vX.Y.Z on merge to main.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Tag new plugin versions
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          scripts/tag-releases.sh
