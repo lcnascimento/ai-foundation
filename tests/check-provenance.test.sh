@@ -136,6 +136,14 @@ case_ "upstreams entry without license" fail "is missing license" \
 case_ "both provenance forms at once" fail "use one form" \
   "perl -pi -e 's|^  status: derived\$|  status: derived\n  upstream: acme/go-skills|' $stack"
 
+# Project skills in .claude/skills/ follow the same convention as plugin skills.
+project_skill="mkdir -p .claude/skills/sample && cp $ref .claude/skills/sample/SKILL.md"
+case_ "project skill with LICENSE passes" ok "" \
+  "$project_skill && cp plugins/p/skills/principles/licenses/acme-principles .claude/skills/sample/LICENSE"
+case_ "project skill without LICENSE fails" fail ".claude/skills/sample/LICENSE" "$project_skill"
+case_ "project skill diverging from Upstream fails" fail ".claude/skills/sample/SKILL.md: differs from Upstream" \
+  "$project_skill && echo LICENSE > .claude/skills/sample/LICENSE && echo edit >> .claude/skills/sample/SKILL.md"
+
 # net_case <name> <expected stderr substring> <PROVENANCE_UPSTREAM_URL>: the
 # Upstream host is unreachable or hangs; the check must stop with exit 2 within
 # PROVENANCE_FETCH_DEADLINE and name the URL.

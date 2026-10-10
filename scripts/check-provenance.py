@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Provenance check for vendored and derived skill files (ADR-0001, ADR-0010).
 
-Scans every Markdown file under plugins/*/skills/ (each SKILL.md and each
-reference, e.g. a Principle under skills/principles/references/). A file whose
+Scans every Markdown file under plugins/*/skills/ and under the repo's own
+project skills in .claude/skills/ (each SKILL.md and each reference, e.g. a
+Principle under skills/principles/references/). A file whose
 frontmatter has `metadata.status` must carry coherent provenance:
 
 - `status` is `community` or `derived`, and `license` is set.
@@ -135,13 +136,19 @@ def fetch_upstream(repo, sha, path):
     return data
 
 
-def skill_dir(file, plugins_dir):
-    """plugins/<plugin>/skills/<skill>/..."""
-    rel = file.relative_to(plugins_dir).parts
-    return plugins_dir.joinpath(*rel[:3])
+def skill_dir(file, skills_root):
+    """<skills_root>/<skill>/... -> <skills_root>/<skill>"""
+    return skills_root / file.relative_to(skills_root).parts[0]
 
 
-def check_file(file, plugins_dir, root):
+def skills_roots(root):
+    """Each plugin's skills/ directory, plus the repo's project skills in .claude/skills/."""
+    roots = sorted(p for p in (root / "plugins").glob("*/skills") if p.is_dir())
+    project = root / ".claude" / "skills"
+    return roots + ([project] if project.is_dir() else [])
+
+
+def check_file(file, skills_root, root):
     """Return (checked, errors): whether the file has metadata.status, and its problems."""
     errors = []
     rel = file.relative_to(root)
@@ -166,7 +173,7 @@ def check_file(file, plugins_dir, root):
     if not str(meta.get("license") or "").strip():
         err("`license` is missing")
 
-    sdir = skill_dir(file, plugins_dir)
+    sdir = skill_dir(file, skills_root)
     single = [k for k in ("upstream", "path", "sha") if k in md]
     listed = md.get("upstreams")
 
@@ -224,12 +231,13 @@ def check_file(file, plugins_dir, root):
 
 def main():
     root = Path(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent).resolve()
-    plugins_dir = root / "plugins"
-    files = sorted(p for p in plugins_dir.glob("*/skills/**/*.md") if p.is_file())
+    files = [
+        (f, sroot) for sroot in skills_roots(root) for f in sorted(sroot.glob("*/**/*.md")) if f.is_file()
+    ]
     errors, checked = [], 0
-    for f in files:
+    for f, sroot in files:
         try:
-            has_status, errs = check_file(f, plugins_dir, root)
+            has_status, errs = check_file(f, sroot, root)
         except FetchError as e:
             print(f"ERROR: {f.relative_to(root)}: {e}", file=sys.stderr)
             return 2
