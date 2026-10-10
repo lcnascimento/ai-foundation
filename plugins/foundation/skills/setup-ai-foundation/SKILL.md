@@ -21,6 +21,9 @@ Each section is a file in `sections/` holding its questions, the files it render
 | [issue-tracker](sections/issue-tracker.md) | always |
 | [linear-labels](sections/linear-labels.md) | always; provisions Linear labels through MCP instead of writing files |
 | [docs-backend](sections/docs-backend.md) | always |
+| [forge](sections/forge.md) | `engineering` is enabled |
+| [environment](sections/environment.md) | `engineering` is enabled |
+| [verify](sections/verify.md) | `engineering` is enabled |
 
 A new section is a new file with the same headings (**Runs when**, **Detect**, **Ask**, **Render**, **Agent skills entries**, **Checklist**) plus one row here.
 
@@ -112,4 +115,3 @@ The `## Agent skills` block holds the sections' **Agent skills entries** in sect
 Items no section owns:
 
 - direnv installed and hooked into the shell (`direnv allow` run once in this Project after `.envrc` changes).
-- Branch protection for the default branch configured on the forge, so merges go through a reviewed PR.
