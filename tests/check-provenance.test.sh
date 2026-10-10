@@ -136,5 +136,48 @@ case_ "upstreams entry without license" fail "is missing license" \
 case_ "both provenance forms at once" fail "use one form" \
   "perl -pi -e 's|^  status: derived\$|  status: derived\n  upstream: acme/go-skills|' $stack"
 
+# Project skills in .claude/skills/ follow the same convention as plugin skills.
+project_skill="mkdir -p .claude/skills/sample && cp $ref .claude/skills/sample/SKILL.md"
+case_ "project skill with LICENSE passes" ok "" \
+  "$project_skill && cp plugins/p/skills/principles/licenses/acme-principles .claude/skills/sample/LICENSE"
+case_ "project skill without LICENSE fails" fail ".claude/skills/sample/LICENSE" "$project_skill"
+case_ "project skill diverging from Upstream fails" fail ".claude/skills/sample/SKILL.md: differs from Upstream" \
+  "$project_skill && echo LICENSE > .claude/skills/sample/LICENSE && echo edit >> .claude/skills/sample/SKILL.md"
+
+# net_case <name> <expected stderr substring> <PROVENANCE_UPSTREAM_URL>: the
+# Upstream host is unreachable or hangs; the check must stop with exit 2 within
+# PROVENANCE_FETCH_DEADLINE and name the URL.
+net_case() {
+  local name="$1" needle="$2" url="$3"
+  local d="$tmp/net-$pass-$fail"
+  fixture "$d"
+  local status=0 start=$SECONDS
+  PROVENANCE_UPSTREAM_URL="$url" PROVENANCE_FETCH_DEADLINE=2 python3 "$check" "$d" >"$d.out" 2>"$d.err" || status=$?
+  if [ "$status" -eq 2 ] && [ $((SECONDS - start)) -le 10 ] && grep -qF -- "$needle" "$d.err"     && grep -qF -- "$url/acme/principles/$sha/" "$d.err"; then
+    echo "ok: $name"
+    pass=$((pass + 1))
+  else
+    echo "FAIL: $name (exit $status)" >&2
+    cat "$d.out" "$d.err" >&2
+    fail=$((fail + 1))
+  fi
+}
+
+# A port nothing listens on: connection refused.
+free_port="$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')"
+net_case "unreachable Upstream host fails fast naming the URL" "cannot fetch" "http://127.0.0.1:$free_port"
+
+# A listener that never answers: only the deadline ends the fetch.
+python3 -c '
+import socket, sys, time
+s = socket.socket(); s.bind(("127.0.0.1", 0)); s.listen(8)
+print(s.getsockname()[1], flush=True)
+time.sleep(60)
+' > "$tmp/hang.port" &
+hang_pid=$!
+trap '{ kill $hang_pid; wait $hang_pid; } 2>/dev/null || true; rm -rf "$tmp"' EXIT
+for _ in $(seq 50); do [ -s "$tmp/hang.port" ] && break; sleep 0.1; done
+net_case "hung Upstream host stops at the deadline" "timed out" "http://127.0.0.1:$(cat "$tmp/hang.port")"
+
 echo "check-provenance: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

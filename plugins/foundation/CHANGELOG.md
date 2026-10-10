@@ -24,6 +24,9 @@ First usable release of the v1 spec (AI-36).
 - Git guardrail `PreToolUse` hook (matcher `Bash`): always denies force-push in any form, push to the
   default branch, `gh pr merge`, `glab mr merge`, `--no-verify`, `reset --hard`, `clean -f`, `branch -D`,
   `checkout .`, `restore .`, `stash drop` and `stash clear`, and points to `know-when-to-stop` (ADR-0009).
+  It also checks commands run through `eval`, `xargs` and shell `-c` scripts with combined flags
+  (`bash -lc`, `sh -ec`), and parses `git push` options that take a value (`-o`, `--push-option`,
+  `--repo`, `--receive-pack`, `--exec`) so their values are read neither as flags nor as refspecs.
 - `setup-ai-foundation` (manual, idempotent, diff per file; ADR-0007): writes the `## Agent skills` and
   `## Language` blocks, `docs/agents/issue-tracker.md`, `triage-labels.md`, `domain.md` and, with
   `engineering` enabled, `forge.md`, `environment.md` and `verify.md`; writes `.claude/settings.json`

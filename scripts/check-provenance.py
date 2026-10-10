@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Provenance check for vendored and derived skill files (ADR-0001, ADR-0010).
 
-Scans every Markdown file under plugins/*/skills/ (each SKILL.md and each
-reference, e.g. a Principle under skills/principles/references/). A file whose
+Scans every Markdown file under plugins/*/skills/ and under the repo's own
+project skills in .claude/skills/ (each SKILL.md and each reference, e.g. a
+Principle under skills/principles/references/). A file whose
 frontmatter has `metadata.status` must carry coherent provenance:
 
 - `status` is `community` or `derived`, and `license` is set.
@@ -19,9 +20,12 @@ frontmatter has `metadata.status` must carry coherent provenance:
 
 Files without `metadata.status` (Custom skills, Custom Principles) are skipped.
 
-Upstream files are fetched from raw.githubusercontent.com. Set
-PROVENANCE_UPSTREAM_DIR to read `<dir>/<owner>/<repo>/<sha>/<path>` from disk
-instead (tests, offline runs).
+Upstream files are fetched from raw.githubusercontent.com (override the base
+URL with PROVENANCE_UPSTREAM_URL). All fetches share one deadline,
+PROVENANCE_FETCH_DEADLINE seconds (default 120), which also covers DNS. When the
+network is unreachable or the deadline passes, the check stops at once with an
+error naming the URL (exit 2). Set PROVENANCE_UPSTREAM_DIR to read
+`<dir>/<owner>/<repo>/<sha>/<path>` from disk instead (tests, offline runs).
 
 Usage: scripts/check-provenance.py [repo-root]   (default: this repo)
 Exit 1 and one `FAIL:` line per problem when anything is off.
@@ -30,6 +34,9 @@ Exit 1 and one `FAIL:` line per problem when anything is off.
 import os
 import re
 import sys
+import threading
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -38,6 +45,49 @@ import yaml
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 STATUSES = ("community", "derived")
 _cache = {}
+_deadline = None
+
+
+class FetchError(Exception):
+    """The Upstream host could not be reached; the check cannot go on."""
+
+
+def _remaining():
+    global _deadline
+    if _deadline is None:
+        _deadline = time.monotonic() + float(os.environ.get("PROVENANCE_FETCH_DEADLINE", "120"))
+    return _deadline - time.monotonic()
+
+
+def fetch_url(url):
+    """Return the body at `url`, None when the server says it is not there.
+
+    Raise FetchError when the host is unreachable or the shared deadline passes.
+    The request runs in a daemon thread so a hung DNS lookup cannot outlive it.
+    """
+    left = _remaining()
+    if left <= 0:
+        raise FetchError(f"fetch deadline passed before {url}")
+    result = {}
+
+    def worker():
+        try:
+            with urllib.request.urlopen(url, timeout=min(30, left)) as r:
+                result["data"] = r.read()
+        except BaseException as e:  # reported by the caller
+            result["error"] = e
+
+    t = threading.Thread(target=worker, daemon=True)
+    t.start()
+    t.join(left)
+    if t.is_alive():
+        raise FetchError(f"timed out fetching {url} (PROVENANCE_FETCH_DEADLINE exceeded)")
+    err = result.get("error")
+    if err is None:
+        return result["data"]
+    if isinstance(err, urllib.error.HTTPError) and err.code == 404:
+        return None
+    raise FetchError(f"cannot fetch {url}: {err}")
 
 
 def split_frontmatter(text):
@@ -80,23 +130,25 @@ def fetch_upstream(repo, sha, path):
         p = Path(local) / repo / sha / path
         data = p.read_bytes() if p.is_file() else None
     else:
-        url = f"https://raw.githubusercontent.com/{repo}/{sha}/{path}"
-        try:
-            with urllib.request.urlopen(url, timeout=30) as r:
-                data = r.read()
-        except Exception:
-            data = None
+        base = os.environ.get("PROVENANCE_UPSTREAM_URL", "https://raw.githubusercontent.com").rstrip("/")
+        data = fetch_url(f"{base}/{repo}/{sha}/{path}")
     _cache[key] = data
     return data
 
 
-def skill_dir(file, plugins_dir):
-    """plugins/<plugin>/skills/<skill>/..."""
-    rel = file.relative_to(plugins_dir).parts
-    return plugins_dir.joinpath(*rel[:3])
+def skill_dir(file, skills_root):
+    """<skills_root>/<skill>/... -> <skills_root>/<skill>"""
+    return skills_root / file.relative_to(skills_root).parts[0]
 
 
-def check_file(file, plugins_dir, root):
+def skills_roots(root):
+    """Each plugin's skills/ directory, plus the repo's project skills in .claude/skills/."""
+    roots = sorted(p for p in (root / "plugins").glob("*/skills") if p.is_dir())
+    project = root / ".claude" / "skills"
+    return roots + ([project] if project.is_dir() else [])
+
+
+def check_file(file, skills_root, root):
     """Return (checked, errors): whether the file has metadata.status, and its problems."""
     errors = []
     rel = file.relative_to(root)
@@ -121,7 +173,7 @@ def check_file(file, plugins_dir, root):
     if not str(meta.get("license") or "").strip():
         err("`license` is missing")
 
-    sdir = skill_dir(file, plugins_dir)
+    sdir = skill_dir(file, skills_root)
     single = [k for k in ("upstream", "path", "sha") if k in md]
     listed = md.get("upstreams")
 
@@ -179,11 +231,16 @@ def check_file(file, plugins_dir, root):
 
 def main():
     root = Path(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent).resolve()
-    plugins_dir = root / "plugins"
-    files = sorted(p for p in plugins_dir.glob("*/skills/**/*.md") if p.is_file())
+    files = [
+        (f, sroot) for sroot in skills_roots(root) for f in sorted(sroot.glob("*/**/*.md")) if f.is_file()
+    ]
     errors, checked = [], 0
-    for f in files:
-        has_status, errs = check_file(f, plugins_dir, root)
+    for f, sroot in files:
+        try:
+            has_status, errs = check_file(f, sroot, root)
+        except FetchError as e:
+            print(f"ERROR: {f.relative_to(root)}: {e}", file=sys.stderr)
+            return 2
         checked += has_status
         errors += errs
     for e in errors:

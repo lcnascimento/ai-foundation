@@ -7,6 +7,7 @@
 # landed on <base> after the branch point don't count. The version is compared
 # against <base> itself, so a bump must still be ahead of what <base> ships.
 # A plugin that doesn't exist on <base> is new and passes; a deleted one passes.
+# A <base> version that isn't X.Y.Z fails: there is nothing to compare against.
 #
 # Usage: scripts/check-version-bump.sh <base-ref> [head-ref]   (head default: HEAD)
 set -euo pipefail
@@ -50,7 +51,10 @@ for plugin in "${plugins[@]}"; do
     failed=1
   elif [[ -z "$old" ]]; then
     echo "ok   $plugin: new plugin at $new"
-  elif [[ ! "$old" =~ $semver ]] || semver_gt "$new" "$old"; then
+  elif [[ ! "$old" =~ $semver ]]; then
+    echo "FAIL $plugin: base version '$old' is not X.Y.Z, so the bump to $new can't be checked; fix plugins/$plugin/.claude-plugin/plugin.json on the base first"
+    failed=1
+  elif semver_gt "$new" "$old"; then
     echo "ok   $plugin: $old -> $new"
   else
     echo "FAIL $plugin: files changed but version is $new (base has $old); bump plugins/$plugin/.claude-plugin/plugin.json"

@@ -71,6 +71,18 @@ CASES = [
     ("echo ok\ngit push origin main", FEATURE, True),
     ("bash -c 'git push -f'", FEATURE, True),
     ("GIT_TRACE=1 git push origin main", FEATURE, True),
+    # Shells with combined short flags, and xargs.
+    ("bash -lc 'git push -f'", FEATURE, True),
+    ("sh -ec 'git reset --hard'", FEATURE, True),
+    ("bash -o pipefail -c 'git push origin main'", FEATURE, True),
+    ("zsh --login -xc 'git stash clear'", FEATURE, True),
+    ("echo feature | xargs git push -f", FEATURE, True),
+    ("ls | xargs -n 1 git branch -D", FEATURE, True),
+    ("printf 'a' | xargs -I {} git clean -fd {}", FEATURE, True),
+    # Push options that take a value.
+    ("git push -o ci.skip -f origin feature", FEATURE, True),
+    ("git push --push-option ci.skip origin main", FEATURE, True),
+    ("git push --exec /usr/bin/git-receive-pack origin main", FEATURE, True),
     # Allowed.
     ("git commit -m 'work on main'", DEFAULT, False),
     ("git add -A && git commit -m wip", DEFAULT, False),
@@ -92,6 +104,14 @@ CASES = [
     ("git stash && git stash pop", FEATURE, False),
     ("git log -n 3 --oneline", FEATURE, False),
     ("echo 'git push -f' > notes.txt", FEATURE, False),
+    ("bash -lc 'git status'", FEATURE, False),
+    ("bash script.sh -c 'git push -f'", FEATURE, False),
+    ("ls | xargs git add", FEATURE, False),
+    ("git push -ofix=1 origin feature", FEATURE, False),
+    ("git push -uo main origin feature", FEATURE, False),
+    ("git push --push-option main origin feature", FEATURE, False),
+    ("git push --receive-pack git-receive-pack origin feature", FEATURE, False),
+    ("git push --repo origin feature", FEATURE, False),
 ]
 
 

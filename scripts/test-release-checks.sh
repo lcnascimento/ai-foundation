@@ -80,6 +80,11 @@ new_repo new-plugin
 set_version design 0.1.0 && touch_file plugins/design/skills/x/SKILL.md && commit add
 expect pass "new plugin needs no prior version"
 
+new_repo bad-base-version
+git checkout --quiet main && set_version foundation 1.0 && commit bad && git checkout --quiet -B pr main
+touch_file plugins/foundation/a.md && set_version foundation 1.0.1 && commit change
+expect fail "non-semver base version fails with a clear message" "base version '1.0' is not X.Y.Z"
+
 new_repo removed-plugin
 git rm --quiet -r plugins/engineering && commit remove
 expect pass "removed plugin passes"
@@ -111,6 +116,19 @@ if [[ "$tags" == "$want" && "$out" == *"skip foundation--v0.1.0"* && "$out" == *
   echo "ok - tags new versions at HEAD and skips existing tags"
 else
   echo "not ok - tag-releases (tags: $tags)"
+  sed 's/^/    /' <<<"$out"
+  failures=$((failures + 1))
+fi
+
+# A tag created locally whose push failed is pushed on the next run, not skipped.
+set_version foundation 0.2.0 && commit bump-foundation && git push --quiet origin main
+git tag -a foundation--v0.2.0 -m "foundation 0.2.0" # as if the earlier push had failed
+out="$("$scripts/tag-releases.sh")"
+if git ls-remote --tags --refs origin | grep -q 'refs/tags/foundation--v0.2.0$' &&
+  [[ "$out" == *"push foundation--v0.2.0"* && "$out" == *"skip engineering--v0.2.0"* ]]; then
+  echo "ok - pushes a local tag missing on the remote"
+else
+  echo "not ok - tag-releases retry"
   sed 's/^/    /' <<<"$out"
   failures=$((failures + 1))
 fi

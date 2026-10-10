@@ -132,10 +132,12 @@ Upstream `LICENSE` next to them ([ADR-0001](./docs/adr/0001-vendor-community-ski
 [ADR-0010](./docs/adr/0010-stack-skills-rewrite-community-content.md)).
 
 `writing-for-agents` (from `mattpocock-skills`) and `skill-creator` are tools for authoring this repo and
-are not part of any plugin. `skill-creator` is enabled only here, at project scope, in
-[.claude/settings.json](./.claude/settings.json). `mattpocock-skills` is not enabled here, since its other
-skills would compete with the vendored copies for routing; load `writing-for-agents` from a separate install
-when needed.
+are not part of any plugin; both live only at this repo's project scope. `writing-for-agents` is vendored
+as a project skill in [.claude/skills/writing-for-agents/](./.claude/skills/writing-for-agents/), with the
+same provenance frontmatter and `LICENSE` as a plugin Community skill (checked by
+`scripts/check-provenance.py`). `skill-creator` is enabled in
+[.claude/settings.json](./.claude/settings.json). The `mattpocock-skills` plugin itself is not enabled here,
+since its other skills would compete with the vendored copies for routing.
 
 ### Releasing
 
