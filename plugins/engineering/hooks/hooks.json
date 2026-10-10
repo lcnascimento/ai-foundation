@@ -1,0 +1,28 @@
+{
+  "description": "engineering hooks: the engineering Principles index.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact|fork",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/principles-index.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/principles-index.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
