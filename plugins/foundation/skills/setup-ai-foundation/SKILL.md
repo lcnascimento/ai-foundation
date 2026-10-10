@@ -1,6 +1,6 @@
 ---
 name: setup-ai-foundation
-description: "Configure this Project for the ai-foundation plugins: Project language, Linear issue tracker, docs backend, per-Project MCP and tokens, and project-scoped plugins. Idempotent; re-run it to migrate after a major."
+description: "Configure this Project for the ai-foundation plugins: Project language, Linear issue tracker and labels, docs backend, per-Project MCP and tokens, and project-scoped plugins. Idempotent; re-run it to migrate after a major."
 disable-model-invocation: true
 ---
 
@@ -19,6 +19,7 @@ Each section is a file in `sections/` holding its questions, the files it render
 | [plugins](sections/plugins.md) | always; its answer decides the enabled plugins every later **Runs when** reads |
 | [language](sections/language.md) | always |
 | [issue-tracker](sections/issue-tracker.md) | always |
+| [linear-labels](sections/linear-labels.md) | always; provisions Linear labels through MCP instead of writing files |
 | [docs-backend](sections/docs-backend.md) | always |
 
 A new section is a new file with the same headings (**Runs when**, **Detect**, **Ask**, **Render**, **Agent skills entries**, **Checklist**) plus one row here.
@@ -65,11 +66,13 @@ Exit 0 means the file is unchanged: list it as unchanged and leave it out of the
 grep -rnE 'lin_api_|ntn_|secret_|gh[pousr]_|glpat-|Bearer [^$]' "$stage"
 ```
 
-Done when every rendered file is either listed as unchanged or has its diff shown, and the secret check printed nothing.
+A section that provisions through MCP (linear-labels) shows its plan here instead of a file diff.
+
+Done when every rendered file is either listed as unchanged or has its diff shown, every provisioning plan is shown, and the secret check printed nothing.
 
 ### 4. Write
 
-Ask once to write the changed files, letting the user drop any of them. Copy each approved file from `$stage` over the Project path, then `rm -rf "$stage"`. Never write `.env`.
+Ask once to write the changed files, letting the user drop any of them. Copy each approved file from `$stage` over the Project path, then `rm -rf "$stage"`. Never write `.env`. Apply the approved provisioning plan lines as their section says.
 
 ### 5. Checklist
 
