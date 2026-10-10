@@ -2,7 +2,8 @@
 # Smoke install: add this Marketplace to a throwaway CLAUDE_CONFIG_DIR, install
 # every plugin and fail unless each plugin and all of its dependencies end up
 # installed and enabled. Catches broken sources and unresolved dependencies,
-# which `claude plugin validate` does not report.
+# which `claude plugin validate` does not report. Also fails unless every skill
+# directory and every hook event of each plugin loads.
 #
 # Usage: scripts/smoke-install.sh [marketplace-dir]   (default: repo root)
 set -euo pipefail
@@ -57,11 +58,26 @@ for plugin in "${plugins[@]}"; do
   done
 done
 
-# Every hook event a plugin declares in hooks/hooks.json must load with it.
 for plugin in "${plugins[@]}"; do
+  details="$(claude plugin details "$plugin@$marketplace")"
+
+  # Every skill directory under plugins/<p>/skills/ must load as a skill.
+  skills_line="$(echo "$details" | grep -E '^ *Skills \(' || true)"
+  loaded=" $(echo "$skills_line" | sed -E 's/^ *Skills \([0-9]+\) *//; s/,/ /g') "
+  for skill_md in "$repo"/plugins/"$plugin"/skills/*/SKILL.md; do
+    skill="$(basename "$(dirname "$skill_md")")"
+    if [[ "$loaded" == *" $skill "* ]]; then
+      echo "ok: $plugin@$marketplace exposes skill $skill"
+    else
+      echo "FAIL: $plugin@$marketplace does not expose skill $skill" >&2
+      echo "$details" >&2
+      fail=1
+    fi
+  done
+
+  # Every hook event a plugin declares in hooks/hooks.json must load with it.
   hooks_json="$repo/plugins/$plugin/hooks/hooks.json"
   [[ -f "$hooks_json" ]] || continue
-  details="$(claude plugin details "$plugin@$marketplace")"
   hooks_line="$(echo "$details" | grep -E '^ *Hooks \(' || true)"
   for event in $(jq -r '.hooks | keys[]' "$hooks_json"); do
     if echo "$hooks_line" | grep -qw "$event"; then
