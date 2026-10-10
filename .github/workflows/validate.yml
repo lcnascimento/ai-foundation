@@ -32,6 +32,9 @@ jobs:
       - name: Smoke install in an isolated CLAUDE_CONFIG_DIR
         run: scripts/smoke-install.sh
 
+      - name: Test the git guardrail hook
+        run: python3 tests/hooks/test_git_guardrail.py
+
   version-bump:
     # ADR-0006: a plugin change without a version bump ships nothing.
     if: github.event_name == 'pull_request'

@@ -1,0 +1,16 @@
+{
+  "description": "foundation hooks: the git guardrail (ADR-0009).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/git-guardrail.py\""
+          }
+        ]
+      }
+    ]
+  }
+}
