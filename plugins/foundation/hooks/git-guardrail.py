@@ -10,7 +10,8 @@ the normal permission flow untouched.
 Denied: force-push in any form, push to the default branch (resolved from
 `origin/HEAD`, including implicit pushes), `gh pr merge`, `glab mr merge`,
 `--no-verify`, `reset --hard`, `clean -f`, `branch -D`, `checkout .`,
-`restore .`, `stash drop`, `stash clear`.
+`restore .`, `stash drop`, `stash clear`. Commands nested in `eval`, `xargs`
+and shell `-c` scripts (`bash -c`, `bash -lc`, ...) are checked too.
 """
 
 import json
@@ -26,8 +27,18 @@ WHOLE_TREE = {".", "./", ":/", ":/."}
 
 # git global options that take a separate value.
 GIT_GLOBAL_WITH_VALUE = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path", "--config-env"}
-# `git push` options that take a separate value.
-PUSH_WITH_VALUE = {"-o", "--push-option", "--repo", "--receive-pack", "--exec"}
+# `git push` long options that take a separate value (`--opt value`; `--opt=value` is one word).
+PUSH_LONG_WITH_VALUE = {"--push-option", "--repo", "--receive-pack", "--exec"}
+# `git push` short options that take a value: the rest of the cluster, else the next word.
+PUSH_SHORT_WITH_VALUE = set("o")
+# Shell short options that take a separate value (`bash -o pipefail -c ...`).
+SHELL_SHORT_WITH_VALUE = set("oO")
+# xargs options that take a separate value.
+XARGS_WITH_VALUE = {
+    "-I", "-L", "-n", "-P", "-s", "-d", "-E", "-a", "-R", "-S",
+    "--arg-file", "--delimiter", "--max-lines", "--max-args", "--max-procs", "--max-chars",
+    "--process-slot-var",
+}
 # `git commit` short options that consume the rest of their cluster or the next word.
 COMMIT_SHORT_WITH_VALUE = set("mFCctS")
 
@@ -133,26 +144,44 @@ def short_flags(args):
     return letters
 
 
-def check_push(args, cwd):
-    if any(a in ("--force", "--force-with-lease") or a.startswith("--force-with-lease=") for a in args):
-        return "force-push"
-    if "--mirror" in args or "--all" in args or "--branches" in args:
-        return "push of every branch, including the default branch"
-    # Short clusters, skipping the values of -o.
-    i, letters = 0, set()
+def parse_push(args):
+    """Split `git push` args into (long options, short flag letters, positionals).
+
+    Option values are skipped: `-o <v>`, `-o<v>`, `-uo <v>`, `--push-option <v>`,
+    `--repo <v>`, `--receive-pack <v>`, `--exec <v>`; `--opt=<v>` is one word.
+    """
+    longs, letters, pos, i = [], set(), [], 0
     while i < len(args):
         a = args[i]
         if a == "--":
+            pos.extend(args[i + 1:])
             break
-        if a.startswith("-") and not a.startswith("--"):
-            letters.update(a[1:])
-            if a.endswith("o"):
+        if a.startswith("--"):
+            longs.append(a)
+            if a in PUSH_LONG_WITH_VALUE:
                 i += 1
+        elif a.startswith("-") and a != "-":
+            cluster = a[1:]
+            for j, ch in enumerate(cluster):
+                letters.add(ch)
+                if ch in PUSH_SHORT_WITH_VALUE:
+                    if j == len(cluster) - 1:
+                        i += 1  # the value is the next word
+                    break  # otherwise the rest of the cluster is the value
+        else:
+            pos.append(a)
         i += 1
+    return longs, letters, pos
+
+
+def check_push(args, cwd):
+    longs, letters, pos = parse_push(args)
+    if any(a in ("--force", "--force-with-lease") or a.startswith("--force-with-lease=") for a in longs):
+        return "force-push"
+    if any(a in ("--mirror", "--all", "--branches") for a in longs):
+        return "push of every branch, including the default branch"
     if "f" in letters:
         return "force-push"
-
-    pos = positionals(args, PUSH_WITH_VALUE)
     remote = pos[0] if pos else "origin"
     refspecs = pos[1:]
     if any(r.startswith("+") for r in refspecs):
@@ -240,6 +269,39 @@ def check_forge(words, noun, verb):
     return None
 
 
+def shell_script(words):
+    """The `-c` script of a shell call (`bash -c s`, `bash -lc s`, `sh -e -o pipefail -c s`), or None."""
+    i = 1
+    while i < len(words):
+        a = words[i]
+        if a.startswith("--") and a != "--":
+            i += 1  # --login, --norc, ...
+            continue
+        if not a.startswith("-") or a in ("-", "--"):
+            return None  # a script file or stdin: nothing inline to check
+        cluster = a[1:]
+        values = sum(1 for ch in cluster if ch in SHELL_SHORT_WITH_VALUE)
+        if "c" in cluster:
+            idx = i + 1 + values
+            return words[idx] if idx < len(words) else None
+        i += 1 + values
+    return None
+
+
+def xargs_command(words):
+    """The words of the command xargs runs, without xargs's own options."""
+    i = 1
+    while i < len(words):
+        a = words[i]
+        if a == "--":
+            i += 1
+            break
+        if not a.startswith("-") or a == "-":
+            break
+        i += 2 if a in XARGS_WITH_VALUE else 1
+    return words[i:]
+
+
 def check(command, cwd, depth=0):
     """Return (segment, reason) for the first forbidden part of `command`, or None."""
     for words in segments(tokenize(command)):
@@ -257,12 +319,14 @@ def check(command, cwd, depth=0):
             reason = check_forge(words, "pr", "merge")
         elif prog == "glab":
             reason = check_forge(words, "mr", "merge")
-        elif depth < 3 and (prog == "eval" or (prog in SHELLS and "-c" in words)):
+        elif depth < 3 and (prog in ("eval", "xargs") or prog in SHELLS):
             if prog == "eval":
                 script = " ".join(words[1:])
+            elif prog == "xargs":
+                script = shlex.join(xargs_command(words))
             else:
-                script = " ".join(words[words.index("-c") + 1:][:1])
-            found = check(script, cwd, depth + 1)
+                script = shell_script(words)
+            found = check(script, cwd, depth + 1) if script else None
             if found:
                 return found
         if reason:
