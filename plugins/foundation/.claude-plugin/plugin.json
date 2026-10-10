@@ -1,10 +1,14 @@
 {
   "name": "foundation",
-  "version": "0.1.0",
-  "description": "Base plugin: shared skills and philosophy rules every other plugin depends on.",
+  "version": "0.2.0",
+  "description": "Skills for any domain (thinking, research, planning with wayfinder, prototyping, documentation), the universal Principles index, the git guardrail and the setup-ai-foundation Project setup.",
   "author": {
     "name": "lcnascimento"
   },
   "license": "MIT",
+  "dependencies": [
+    "linear@claude-plugins-official",
+    "notion@claude-plugins-official"
+  ],
   "defaultEnabled": true
 }

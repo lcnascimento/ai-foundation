@@ -1,6 +1,6 @@
 # Agent verification reads the Project's environment from docs/agents, not from native run skills
 
-`engineering` ships a Custom skill, `verify`, that checks the agent's own work in layers before it declares the work done: static checks (format, lint), tests, and runtime. Runtime runs only when the change alters observable behavior (an endpoint, a worker, the UI). CI stays the deterministic gate (ADR-0009). `verify` catches what would break CI before a PR opens, and what CI can't see, which is the change running. It is the procedure behind the `prove-it-works` Principle. The skill triggers on its description ("before declaring done"), and `implement`/`implement-spec` cite `engineering:verify` before `engineering:code-review`, which adds one line to their existing derivation (ADR-0008). No native command is named `verify`.
+`engineering` ships a Custom skill, `verify`, that checks the agent's own work in layers before it declares the work done: static checks (format, lint), tests, and runtime. Runtime runs only when the change alters observable behavior (an endpoint, a worker, the UI). CI stays the deterministic gate (ADR-0009). `verify` catches what would break CI before a PR opens, and what CI can't see, which is the change running. It is the procedure behind the `prove-it-works` Principle. The skill triggers on its description ("before declaring done"), and `implement`/`implement-spec` cite `engineering:verify` before `engineering:code-review`, which adds one line to their existing derivation (ADR-0008). Claude Code also ships a native `verify` skill, so every reference uses the qualified name `engineering:verify`, as ADR-0008 does for `code-review`.
 
 It reads two optional Project files, following the `docs/agents/*.md` pattern (ADR-0007):
 
@@ -25,3 +25,4 @@ The output is a `Verification` block listing each layer, its command, and its re
 - Projects that only use `/run` get no environment from `verify`, and the two can drift if both exist.
 - Homelab signals (Sentry, LGTM) reach `verify` only through the optional field in `environment.md`. Real integration remains open.
 - `implement` and `implement-spec` carry one more line in their derivation.
+- The native `verify` skill competes with `engineering:verify` for routing on its description. The first version of this ADR said no native `verify` existed. `implement*` and the docs already used the qualified name, so only the ADR changed.

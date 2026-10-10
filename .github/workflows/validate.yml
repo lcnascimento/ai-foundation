@@ -19,12 +19,69 @@ jobs:
         run: npm install -g @anthropic-ai/claude-code
 
       - name: Validate marketplace manifest
-        run: claude plugin validate .
+        run: claude plugin validate --strict .
 
       - name: Validate each plugin
         run: |
           set -euo pipefail
           for dir in plugins/*/; do
             echo "== ${dir} =="
-            claude plugin validate "${dir%/}"
+            claude plugin validate --strict "${dir%/}"
           done
+
+      - name: Smoke install in an isolated CLAUDE_CONFIG_DIR
+        run: scripts/smoke-install.sh
+
+      - name: Test the git guardrail hook
+        run: python3 tests/hooks/test_git_guardrail.py
+
+  principles-and-provenance:
+    # Both need PyYAML; one job installs it once.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PyYAML
+        run: python3 -c 'import yaml' 2>/dev/null || sudo apt-get install -y python3-yaml
+
+      - name: Principles index hook contract
+        run: tests/principles-index.test.sh
+
+      - name: Provenance check tests
+        run: tests/check-provenance.test.sh
+
+      - name: Provenance of vendored and derived skills
+        run: scripts/check-provenance.py
+
+  version-bump:
+    # ADR-0006: a plugin change without a version bump ships nothing.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Test release scripts
+        run: scripts/test-release-checks.sh
+
+      - name: Require a version bump in each changed plugin
+        run: scripts/check-version-bump.sh "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+
+  tag-releases:
+    # ADR-0006: tag each released plugin as <plugin>--vX.Y.Z on merge to main.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Tag new plugin versions
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          scripts/tag-releases.sh
