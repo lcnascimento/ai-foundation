@@ -1,6 +1,6 @@
 {
   "name": "engineering",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Engineering SDLC: investigation, spec, tickets, TDD, orchestrated implementation, layered verification, conformance review, debugging and PRs, plus engineering Principles, Go and Next.js stack skills and Context7.",
   "author": {
     "name": "lcnascimento"

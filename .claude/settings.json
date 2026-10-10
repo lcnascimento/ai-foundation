@@ -1,5 +1,7 @@
 {
   "enabledPlugins": {
-    "linear@claude-plugins-official": true
+    "linear@claude-plugins-official": true,
+    "mattpocock-skills@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true
   }
 }
