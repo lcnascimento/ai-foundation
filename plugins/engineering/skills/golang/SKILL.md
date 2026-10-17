@@ -40,7 +40,7 @@ Every layer has tests. Repository and bridge translate driver or client errors i
 - Interfaces live with the consumer in one `contracts.go` per consuming layer; constructors take interfaces and return concrete pointers.
 - Logging, tracing and metrics live only in the package's `telemetry.go`, behind `on<Event>` hooks.
 - `ctx context.Context` is the first parameter of anything that does I/O.
-- Comments are optional, exported identifiers included. Write one only when the *why* is not in the code.
+- Comments, exported identifiers included: apply earn-every-comment (`engineering:principles earn-every-comment`).
 - Internals that callers must not touch go under an `internal/` package; an importable internal will be imported.
 - Two hand-edited lists of the same items are a bug: derive one from the other, or add a test or `go generate` step that fails when they drift.
 - A change that takes a file from under 1k lines to over 1k lines needs a strong reason; split it instead.
