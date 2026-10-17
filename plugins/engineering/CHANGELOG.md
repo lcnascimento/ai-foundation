@@ -9,6 +9,20 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.3.0] - 2026-10-16
+
+### Added
+
+- Principles: `earn-every-comment` (Custom, ADR-0013), the 20th engineering Principle. A comment, doc
+  comment or lint suppression survives only on a closed exception list; everything else is deleted,
+  reshaped into code, or encoded as a test, type or lint.
+
+### Changed
+
+- `code-review` is now derived from mattpocock: its smell baseline adds Fowler's **Comments**, the one
+  hard violation of the baseline, judged against `earn-every-comment`.
+- `golang`: the comment norm points to `earn-every-comment` instead of restating a looser rule.
+
 ## [0.2.0] - 2026-10-10
 
 First usable release of the v1 spec (AI-36).
