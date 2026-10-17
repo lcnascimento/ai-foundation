@@ -2,16 +2,23 @@
 
 ## Language
 
-- **Repository content is English**: code, skills, rules, docs, commit messages, PR titles/bodies, branch names.
-- **Talk to the user in Portuguese (pt-BR)**: every chat reply, question and summary.
-- **Issue tracker content is Portuguese (pt-BR)**: Linear issue titles, descriptions and comments. Keep code identifiers, file paths, label names and quoted errors as-is.
+- **Project language: Portuguese (pt-BR).** Talk to the user, and write documentation (`README.md`, `GLOSSARY.md` definitions, ADRs and other documents, Notion pages), issue tracker content and PR bodies, in Portuguese (pt-BR).
+- **Code artifacts are English**: code, identifiers, comments, commit messages, branch names, PR titles, skills, `CLAUDE.md`/`AGENTS.md` and `docs/agents/*`. `GLOSSARY.md` terms stay identical to the code identifiers.
 
 ## Agent skills
 
 ### Issue tracker
 
-Issues live in Linear (team **AI Foundation**, key `AI`), accessed via the Linear MCP. See `docs/agents/issue-tracker.md`.
+Linear, team AI Foundation (`AI`), through the `linear` MCP server. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical roles under the `triage` label group, names unchanged. See `docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-Single-context: one `GLOSSARY.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+single-context, docs backend repo (`docs/<type>/`). See `docs/agents/domain.md`.
+
+### Forge
+
+GitHub at `github.com` through the `gh` CLI, repository `lcnascimento/ai-foundation`. See `docs/agents/forge.md`.

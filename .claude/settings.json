@@ -1,6 +1,19 @@
 {
   "enabledPlugins": {
     "linear@claude-plugins-official": true,
-    "skill-creator@claude-plugins-official": true
+    "skill-creator@claude-plugins-official": true,
+    "foundation@ai-foundation": true,
+    "notion@claude-plugins-official": true,
+    "engineering@ai-foundation": true,
+    "context7@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "ai-foundation": {
+      "source": {
+        "source": "github",
+        "repo": "lcnascimento/ai-foundation"
+      },
+      "autoUpdate": true
+    }
   }
 }
