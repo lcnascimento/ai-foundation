@@ -9,13 +9,27 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
-## [0.3.0] - 2026-10-18
+## [0.4.0] - 2026-10-18
 
 ### Changed
 
 - `implement-spec` and `implement`: when they open a PR, they wait for its CI and fix failing checks until
   every check on the pushed head commit is green; `implement-spec` marks the PR ready only then, and stops
   under `know-when-to-stop` with the PR in draft when the same failure returns.
+
+## [0.3.0] - 2026-10-16
+
+### Added
+
+- Principles: `earn-every-comment` (Custom, ADR-0013), the 20th engineering Principle. A comment, doc
+  comment or lint suppression survives only on a closed exception list; everything else is deleted,
+  reshaped into code, or encoded as a test, type or lint.
+
+### Changed
+
+- `code-review` is now derived from mattpocock: its smell baseline adds Fowler's **Comments**, the one
+  hard violation of the baseline, judged against `earn-every-comment`.
+- `golang`: the comment norm points to `earn-every-comment` instead of restating a looser rule.
 
 ## [0.2.0] - 2026-10-10
 

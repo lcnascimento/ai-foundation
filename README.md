@@ -13,7 +13,7 @@ defined in [GLOSSARY.md](./GLOSSARY.md); decisions live in [docs/adr/](./docs/ad
 | Plugin | Scope | What it brings |
 | --- | --- | --- |
 | [`foundation`](./plugins/foundation) | user, always enabled | Skills for any domain, the 6 universal Principles, the git guardrail and `/setup-ai-foundation`. Depends on the official `linear` and `notion` plugins. |
-| [`engineering`](./plugins/engineering) | Project | The engineering SDLC, 19 engineering Principles, the `golang` and `nextjs` stack skills. Depends on `foundation` and the official `context7` plugin. |
+| [`engineering`](./plugins/engineering) | Project | The engineering SDLC, 20 engineering Principles, the `golang` and `nextjs` stack skills. Depends on `foundation` and the official `context7` plugin. |
 
 ### `foundation`
 
@@ -41,7 +41,7 @@ defined in [GLOSSARY.md](./GLOSSARY.md); decisions live in [docs/adr/](./docs/ad
 | PR | `pr` |
 | Stack | `golang`, `nextjs` |
 
-Its 19 Principles reach every session through the same index hook. Load any Principle's full text with
+Its 20 Principles reach every session through the same index hook. Load any Principle's full text with
 `<plugin>:principles <name>`.
 
 ## Bootstrap (once per machine)
