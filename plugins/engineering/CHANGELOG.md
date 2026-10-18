@@ -9,6 +9,14 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.4.0] - 2026-10-18
+
+### Changed
+
+- `implement-spec` and `implement`: when they open a PR, they wait for its CI and fix failing checks until
+  every check on the pushed head commit is green; `implement-spec` marks the PR ready only then, and stops
+  under `know-when-to-stop` with the PR in draft when the same failure returns.
+
 ## [0.3.0] - 2026-10-16
 
 ### Added
