@@ -41,7 +41,7 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 7. Once all tickets are complete, call the Skill tool with `engineering:verify` and then with `engineering:code-review` on the integration branch. Fix all issues raised by the verification and the code review in a single **implementer subagent**. If a draft PR exists, put the `Verification` block in its body.
 
-8. If a draft PR exists, push the integration branch and drive the PR's CI to **green**: every check reported on the pushed head commit has passed. Pending, failed or cancelled checks are not green, and neither is "no checks reported" while the Project has CI config (the run has not started yet: wait and look again).
+8. If a draft PR exists, push the integration branch and drive the PR's CI to **green**: every check reported on the pushed head commit has passed, or was skipped by its own workflow condition. Pending, failed or cancelled checks are not green, and neither is "no checks reported" while the Project has CI config (the run has not started yet: wait and look again).
    - Wait for the checks with the checks command in `docs/agents/forge.md` (`gh pr checks --watch` on GitHub), confirming they belong to the head commit you pushed. Run it in the background when it can outlast the shell timeout.
    - When a check goes red, read the failing run with the logs command in `docs/agents/forge.md` (`gh run view --log-failed` on GitHub), fix the cause in a single **implementer subagent**, push, and wait again. A check turns green only through a fix in the code under test, as in `engineering:verify` step 3.
    - When the workflows skip draft PRs, mark the PR ready to start them, and move it back to draft (`gh pr ready --undo`) if a check goes red.
