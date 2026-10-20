@@ -9,6 +9,21 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.3.0] - 2026-10-19
+
+### Changed
+
+- `setup-ai-foundation` writes a **Research ticket** rule into the Wayfinding operations of
+  `docs/agents/issue-tracker.md`: a `wayfinder:research` ticket keeps its findings in full in its resolution
+  comment, and no `research/<name>` branch is created, committed or pushed. It replaces the throwaway branch
+  of `wayfinder`'s chart step, which stays a Community skill (the same contract-rule route as `document:*`
+  tickets, ADR-0012).
+
+### Migration
+
+- Re-run `/setup-ai-foundation` in each Project to add the rule. Until then, `wayfinder` keeps creating
+  `research/<name>` branches.
+
 ## [0.2.0] - 2026-10-10
 
 First usable release of the v1 spec (AI-36).
