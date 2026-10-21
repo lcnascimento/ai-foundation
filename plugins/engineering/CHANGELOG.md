@@ -9,6 +9,15 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.5.0] - 2026-10-21
+
+### Changed
+
+- `implement-spec`: the leader reads the spec from the issue tracker once, saves it with its comments as
+  `spec.md` in a notes directory outside the repo, and passes that path to every subagent, which reads its
+  own ticket from the tracker and the spec only from the file. Progress on the spec goes in comments; the
+  spec issue itself is touched only to change its state.
+
 ## [0.4.0] - 2026-10-18
 
 ### Changed
