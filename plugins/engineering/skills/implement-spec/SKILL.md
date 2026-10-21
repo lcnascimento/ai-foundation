@@ -18,19 +18,20 @@ The goal is the entire spec implemented on a single **integration branch**, with
 
 The tickets are not a list of steps. They are a **task graph** with blocking relationships between them. This means there is always a **frontier** of tickets which are ready to be grabbed.
 
-Communication to and from subagents should be sparse. Communicate primarily through **context pointers**: to the spec, tickets, research notes, and previous commits. Don't duplicate information already available via pointers.
+Communication to and from subagents should be sparse. Communicate primarily through **context pointers**: to the spec, tickets, research notes, and previous commits. Don't duplicate information already available via pointers. Report progress on the spec as comments, and touch the spec issue itself only to change its state.
 
 **Implementer subagents** should be run in the background where possible for maximum concurrency.
 
 ## Steps
 
-1. Read the spec and tickets to understand the task graph.
+1. Create a **notes directory** outside the repo, accessible by all future subagents. Read the spec from the issue tracker once, with its comments, and save it there as `spec.md`; from then on, read the spec from that file, never from the tracker. If you edit the spec in the tracker, rewrite `spec.md` at once. Read the tickets to understand the task graph.
 
-2. (optional) Use an **exploration subagent** to conduct any exploration required by the tickets - relevant codebase files or external documentation. Ensure the exploration subagent can save files - it should save its markdown notes in a directory outside the repo, accessible by all future subagents. This lets **implementer subagents** focus on implementation rather than exploration.
+2. (optional) Use an **exploration subagent** to conduct any exploration required by the tickets - relevant codebase files or external documentation. Pass it the path to `spec.md`. Ensure the exploration subagent can save files - it should save its markdown notes in the notes directory. This lets **implementer subagents** focus on implementation rather than exploration.
 
 3. Create the integration branch. If the issue tracker closes work through PRs, or the user asks for one, open a draft PR after the first merge in step 5 (a branch with no commits ahead of main can't open one), marked as closing the spec and tickets.
 
-4. Use **implementer subagents** to implement each ticket, each in its own worktree on its own branch. Each implementer subagent:
+4. Use **implementer subagents** to implement each ticket, each in its own worktree on its own branch. Pass each one the path to `spec.md` and its ticket ID. Each implementer subagent:
+   - reads its own ticket from the issue tracker and the spec from `spec.md`, never from the tracker;
    - confirms its worktree is based on the integration branch before starting, and resets onto it if not;
    - calls the Skill tool with `tdd` to build the ticket;
    - merges the integration branch tip into its own branch before reporting done
