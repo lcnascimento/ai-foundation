@@ -16,7 +16,8 @@ re-run `/setup-ai-foundation`).
 - `implement-spec`: the leader passes each implementer the integration branch and its own branch name, and the
   implementer starts with `git switch -C <its branch> <integration branch>` instead of resetting onto the
   integration branch, which the git guardrail denies. The leader removes each worktree and branch once its
-  merge is done, whatever the CI gate's verdict; the final cleanup only sweeps what is left.
+  merge is done, whatever the CI gate's verdict, and stays on the integration branch so `git branch -d` sees
+  the merge; the final cleanup only sweeps what is left.
 
 ## [0.6.0] - 2026-10-21
 

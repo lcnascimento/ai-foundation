@@ -28,7 +28,7 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 2. (optional) Use an **exploration subagent** to conduct any exploration required by the tickets - relevant codebase files or external documentation. Pass it the path to `spec.md`. Ensure the exploration subagent can save files - it should save its markdown notes in the notes directory. This lets **implementer subagents** focus on implementation rather than exploration.
 
-3. Create the integration branch. Open a draft PR after the first merge in step 5 (a branch with no commits ahead of main can't open one), marked as closing the spec and tickets when the issue tracker closes work through PRs. The PR is what starts the CI behind the **CI gate**.
+3. Create the integration branch and stay on it, so `git branch -d` in step 5 sees each merged branch as merged. Open a draft PR after the first merge in step 5 (a branch with no commits ahead of main can't open one), marked as closing the spec and tickets when the issue tracker closes work through PRs. The PR is what starts the CI behind the **CI gate**.
 
 4. Use **implementer subagents** to implement each ticket, each in its own worktree (`isolation: "worktree"`) on its own branch. Pass each one the path to `spec.md`, its ticket ID, the integration branch name and the name of its own branch. Before retrying a ticket, remove the worktree of the previous attempt. Each implementer subagent:
    - reads its own ticket from the issue tracker and the spec from `spec.md`, never from the tracker;
@@ -36,7 +36,7 @@ Communication to and from subagents should be sparse. Communicate primarily thro
    - calls the Skill tool with `tdd` to build the ticket;
    - merges the integration branch tip into its own branch before reporting done
 
-5. Once an **implementer subagent** completes, merge its work to the integration branch with a **merger subagent**, which runs the **CI gate** on the merge and reports its verdict without fixing anything. Merge one branch at a time, and start the next merge only on `green`. Handle `red` as the **CI gate** says. A red the tickets expect does not block the next merge: the batches of a wide refactor that `to-tickets` sequenced to turn green only at their integrate ticket. Once the merger has merged a branch, whatever the verdict, remove its worktree and branch (`git worktree remove <path>`, `git branch -d <branch>`).
+5. Once an **implementer subagent** completes, merge its work to the integration branch with a **merger subagent**, which runs the **CI gate** on the merge and reports its verdict without fixing anything. Merge one branch at a time, and start the next merge only on `green`. Handle `red` as the **CI gate** says. A red the tickets expect does not block the next merge: the batches of a wide refactor that `to-tickets` sequenced to turn green only at their integrate ticket. Once the **merger subagent** has merged a branch, whatever the verdict, remove its worktree and branch (`git worktree remove <path>`, `git branch -d <branch>`).
 
 6. If this changes the **frontier** of available tickets, kick off more **implementer subagents** to work on the new tickets. This allows for maximum concurrency.
 
@@ -46,7 +46,7 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 9. Mark the PR ready for review once its CI is green. If the issue tracker doesn't close work through PRs, resolve each ticket the way it closes work. The work is done only when the PR's CI is green.
 
-10. Clean up the **implementer subagent** worktrees still left: tickets abandoned, or implementers that failed before a merge.
+10. Clean up the **implementer subagent** worktrees and branches still left: tickets abandoned, or **implementer subagents** that failed before a merge.
 
 ## CI gate
 
