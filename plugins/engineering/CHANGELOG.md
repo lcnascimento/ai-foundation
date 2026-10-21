@@ -9,6 +9,15 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.7.0] - 2026-10-21
+
+### Changed
+
+- `implement-spec`: the leader passes each implementer the integration branch and its own branch name, and the
+  implementer starts with `git switch -C <its branch> <integration branch>` instead of resetting onto the
+  integration branch, which the git guardrail denies. The leader removes each worktree and branch once its
+  merge is done, whatever the CI gate's verdict; the final cleanup only sweeps what is left.
+
 ## [0.6.0] - 2026-10-21
 
 ### Changed
