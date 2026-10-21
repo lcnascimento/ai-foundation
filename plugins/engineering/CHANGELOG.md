@@ -9,6 +9,15 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.6.0] - 2026-10-21
+
+### Changed
+
+- `implement-spec`: the merger pushes the integration branch after each merge and waits for the PR's CI on
+  the pushed commit; a red check blocks the next merge until a fix, merged through the same gate, turns it
+  green. The draft PR now always opens after the first merge, since its CI is the gate. Merges and the final
+  push share one **CI gate** routine, which reruns failed jobs once before calling a check red.
+
 ## [0.5.0] - 2026-10-21
 
 ### Changed
