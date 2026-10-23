@@ -9,6 +9,15 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.6.0] - 2026-10-23
+
+### Changed
+
+- `setup-ai-foundation` section `forge`: asks for the local gate (the CI jobs' local commands that
+  `implement-spec` runs after each merge, recommending all but jobs needing a running stack or far slower than
+  the rest) and renders it as `### Local gate` in `docs/agents/forge.md`; the `## CI` paragraph also says when
+  draft pull requests run no CI.
+
 ## [0.5.0] - 2026-10-22
 
 ### Added

@@ -9,6 +9,18 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.9.0] - 2026-10-23
+
+### Changed
+
+- `implement-spec`: each merge to the integration branch passes a local **merge gate** (the local gate commands
+  of `docs/agents/forge.md`, needs `foundation` 0.6.0 to declare them) instead of waiting for the remote CI,
+  so merges no longer queue behind a CI run each. The PR stays in draft until all tickets are merged, then is
+  marked ready and its CI runs once as the **CI gate**. The CI gate waits for a workflow run created after the
+  push or the `gh pr ready`, so a draft run's skipped checks are never read as green. On a red check the PR
+  stays ready while the fix goes through, and moves back to draft only on a `BLOCKED` stop.
+- `implement`: opens its PR ready for review, never as a draft, so its CI runs when the workflows skip drafts.
+
 ## [0.8.0] - 2026-10-22
 
 ### Changed
