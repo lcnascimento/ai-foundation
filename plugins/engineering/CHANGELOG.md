@@ -9,6 +9,14 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.10.1] - 2026-10-23
+
+### Fixed
+
+- `implement-spec`: the PR leaves draft only in step 8, once every ticket is complete and the verify and
+  code-review fixes are merged, never earlier to get checks on a merge. A check skipped because the PR is a
+  draft, or no workflow run on a draft, is no longer read as a green **CI gate**.
+
 ## [0.10.0] - 2026-10-23
 
 ### Added
