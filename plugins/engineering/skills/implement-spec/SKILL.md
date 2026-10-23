@@ -26,7 +26,7 @@ Every branch and worktree directory is named after its issue identifier in lower
 
 ## Steps
 
-1. Create a **notes directory** outside the repo, accessible by all future subagents. Read the spec from the issue tracker once, with its comments, and save it there as `spec.md`; from then on, read the spec from that file, never from the tracker. If you edit the spec in the tracker, rewrite `spec.md` at once. Read the tickets to understand the task graph. Move the spec to **start**.
+1. Call the Skill tool with `engineering:clean-worktrees`, so merged work from earlier specs leaves no worktree behind. Create a **notes directory** outside the repo, accessible by all future subagents. Read the spec from the issue tracker once, with its comments, and save it there as `spec.md`; from then on, read the spec from that file, never from the tracker. If you edit the spec in the tracker, rewrite `spec.md` at once. Read the tickets to understand the task graph. Move the spec to **start**.
 
 2. (optional) Use an **exploration subagent** to conduct any exploration required by the tickets - relevant codebase files or external documentation. Pass it the path to `spec.md`. Ensure the exploration subagent can save files - it should save its markdown notes in the notes directory. This lets **implementer subagents** focus on implementation rather than exploration.
 
@@ -48,7 +48,7 @@ Every branch and worktree directory is named after its issue identifier in lower
 
 9. Once the PR's CI is green, move the spec to **hand off for review**. The work is done only when the PR's CI is green. The PR's merge closes the spec and its tickets; when the user approves the work in the session instead, close the spec and every ticket yourself.
 
-10. Clean up the **implementer subagent** worktrees and branches still left: tickets abandoned, or **implementer subagents** that failed before a merge. The integration worktree stays until the PR merges; then remove it and its branch.
+10. Call the Skill tool with `engineering:clean-worktrees` to clean up the **implementer subagent** worktrees and branches still left. The branches of abandoned tickets, or of **implementer subagents** that failed before a merge, have no proven merge, so it keeps them: list them for the user with the commands that remove them. The integration worktree stays until the PR merges; in your final message, tell the user that `/engineering:clean-worktrees` then removes it and its branch.
 
 ## Merge gate
 

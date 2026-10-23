@@ -35,6 +35,9 @@ jobs:
       - name: Test the git guardrail hook
         run: python3 tests/hooks/test_git_guardrail.py
 
+      - name: Test the clean-worktrees script
+        run: python3 tests/scripts/test_clean_worktrees.py
+
   principles-and-provenance:
     # Both need PyYAML; one job installs it once.
     runs-on: ubuntu-latest
