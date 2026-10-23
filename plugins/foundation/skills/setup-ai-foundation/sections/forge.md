@@ -13,6 +13,7 @@ Records the Project's forge, its CLI and host, and the commit, PR and CI convent
 - `git symbolic-ref --short refs/remotes/origin/HEAD` (strip `origin/`): the default branch; else `main`.
 - `git log --oneline -20`: whether history exists and whether most subjects already follow Conventional Commits (`type(scope): ...`).
 - `.github/workflows/*.yml` and `.gitlab-ci.yml`: whether CI exists.
+- `git check-ignore -q .claude/worktrees/x`: whether the worktrees of `implement` and `implement-spec` are already ignored.
 
 ## Ask
 
@@ -68,6 +69,12 @@ This Project's code lives on {{forge}} at `{{host}}`. Use the `{{cli}}` CLI for 
 ## CI
 
 {{ci}}
+```
+
+**`.gitignore`**, ensured line, only when `git check-ignore -q .claude/worktrees/x` fails:
+
+```
+.claude/worktrees/
 ```
 
 ## Agent skills entries

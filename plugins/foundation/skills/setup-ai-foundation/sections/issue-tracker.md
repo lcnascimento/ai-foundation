@@ -48,7 +48,7 @@ dotenv_if_exists .env
 
 **`docs/agents/issue-tracker.md`**, owned Markdown, with `{{server}}`, `{{team_name}}` and `{{team_key}}` filled:
 
-```markdown
+````markdown
 # Issue tracker: Linear
 
 Issues and specs for this Project live in Linear, team **{{team_name}}** (key `{{team_key}}`), in this Project's own Linear workspace. Use the `{{server}}` MCP server's tools (`mcp__{{server}}__*`) for all operations; never the forge's issue tracker. The server authenticates with `LINEAR_API_KEY` from this Project's `.env`, so it reaches only this Project's workspace.
@@ -63,6 +63,27 @@ Issues and specs for this Project live in Linear, team **{{team_name}}** (key `{
 - **Close**: `save_issue` with `state: "Done"` (or `"Canceled"` for won't-do), after commenting the reason.
 
 Refer to issues by title in prose; the identifier (`{{team_key}}-12`) and URL ride inside the link.
+
+## Work lifecycle
+
+Skills that build a ticket (`implement`, `implement-spec`) name lifecycle roles. Each maps to a workflow status of team {{team_name}}, set with `save_issue` and `state: "<status>"`:
+
+| Role | Status |
+| - | - |
+| start | `In Progress` |
+| hand off for review | `In Review` |
+| close | `Done` |
+
+- **Approval**: the merge of the work's PR is the user's approval. The PR body carries one `Closes <identifier>` line per issue it resolves, so Linear's forge integration closes each one on merge. When the user approves the work in the session instead, close each issue yourself.
+- **Missing status**: statuses belong to each team. When `list_issue_statuses` for team {{team_name}} has no `In Review` in any letter case, create it, typed `started` and placed after the team's other `started` statuses. The MCP server can't create statuses, so call Linear's API with `LINEAR_API_KEY`, never printing it:
+
+  ```bash
+  [ -n "${LINEAR_API_KEY:-}" ] || { set -a; . ./.env; set +a; }
+  linear() { curl -sS https://api.linear.app/graphql -H "Authorization: $LINEAR_API_KEY" -H 'Content-Type: application/json' -d "$1"; }
+  team="$(linear '{"query":"query($key:String!){teams(filter:{key:{eq:$key}}){nodes{id states{nodes{name type position}}}}}","variables":{"key":"{{team_key}}"}}' | jq -c '.data.teams.nodes[0]')"
+  input="$(jq -c '{teamId: .id, name: "In Review", type: "started", color: "#0f783c", position: ([.states.nodes[] | select(.type == "started") | .position] | max + 1)}' <<<"$team")"
+  linear "$(jq -nc --argjson input "$input" '{query: "mutation($input:WorkflowStateCreateInput!){workflowStateCreate(input:$input){success}}", variables: {input: $input}}')"
+  ```
 
 ## When a skill says "publish to the issue tracker"
 
@@ -84,7 +105,7 @@ Used by `/wayfinder`. The **map** is a single issue with **sub-issues** as ticke
 - **Frontier query**: `list_issues` with `parentId: <map>` and open states. Drop any with an assignee, or with an open blocker (check via `get_issue` relations). First in map order (creation order) wins.
 - **Claim**: `save_issue` with `assignee: "me"`, the session's first write.
 - **Resolve**: `save_comment` with the answer, then `save_issue` with `state: "Done"`, then append a context pointer (gist + link) to the map's Decisions-so-far (`save_issue` with a `patch` append on the map).
-```
+````
 
 **`docs/agents/triage-labels.md`**, owned Markdown, no placeholders:
 
@@ -126,6 +147,6 @@ The five canonical roles under the `triage` label group, names unchanged. See `d
 ## Checklist
 
 - A Linear workspace for this Project, with the team {{team_name}} (`{{team_key}}`).
-- The team's workflow: Backlog → Todo → In Progress → In Review → Done, plus Canceled and Duplicate.
+- The team's workflow: Backlog → Todo → In Progress → In Review → Done, plus Canceled and Duplicate (`linear-statuses` provisions In Review).
 - A Linear personal API key created in that workspace, stored as `LINEAR_API_KEY=<key>` in this Project's `.env` (never committed).
 - For cloud sessions: `LINEAR_API_KEY` set on this Project's cloud environment.
