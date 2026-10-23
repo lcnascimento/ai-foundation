@@ -29,6 +29,40 @@ re-run `/setup-ai-foundation`).
 - Re-run `/setup-ai-foundation` in each Project to get the new `## Language` section. The hook works with the
   old section too.
 
+## [0.5.0] - 2026-10-22
+
+### Added
+
+- `writing-for-agents` (Community, mattpocock): the writing guide for skills and `CLAUDE.md`/`AGENTS.md`,
+  moved here from this repo's project scope. `retro` already called it, so in any other Project the call
+  found no skill.
+
+### Changed
+
+- `retro` calls `foundation:writing-for-agents` by its qualified name (ADR-0008) and is now a derived skill.
+
+## [0.4.0] - 2026-10-22
+
+### Added
+
+- `setup-ai-foundation` section `linear-statuses`: plans and, on approval, creates the `In Review` status
+  (`started`, after the team's other `started` statuses) in the Project's Linear team, and reports a missing
+  `In Progress` or `Done` as a conflict.
+
+### Changed
+
+- `setup-ai-foundation` writes a **Work lifecycle** section into `docs/agents/issue-tracker.md`: the roles
+  start, hand off for review and close map to `In Progress`, `In Review` and `Done`; the merge of the work's
+  PR, whose body closes each issue it resolves, is the user's approval; and a missing `In Review` is created
+  through Linear's API with `LINEAR_API_KEY`, since the MCP server can't create statuses.
+- The `forge` section ensures `.claude/worktrees/` in `.gitignore`, where `implement` and `implement-spec`
+  now create their worktrees.
+
+### Migration
+
+- Re-run `/setup-ai-foundation` in each Project to get the work lifecycle and the `In Review` status. Until
+  then, `implement` and `implement-spec` find no lifecycle statuses to move issues through.
+
 ## [0.3.0] - 2026-10-19
 
 ### Changed

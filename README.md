@@ -19,8 +19,9 @@ defined in [GLOSSARY.md](./GLOSSARY.md); decisions live in [docs/adr/](./docs/ad
 
 - **Thinking and planning:** `grilling`, `domain-modeling`, `wayfinder`, `research`, `prototype`, `handoff`, `retro`.
 - **Writing:** `documentation` writes a Project document (`adr`, `tutorial`, `how-to`, `reference`,
-  `explanation`) into the Project's docs backend (repo or Notion); `technical-writing`, `unslop`, `bro` and
-  `show-me` are manual.
+  `explanation`) into the Project's docs backend (repo or Notion); `writing-for-agents` guides writing skills
+  and `CLAUDE.md`/`AGENTS.md` (`retro` calls it); `technical-writing`, `unslop`, `bro` and `show-me` are
+  manual.
 - **Project setup:** `/setup-ai-foundation` (manual); `/setup-matt-pocock-skills` only redirects to it.
 - **Principles:** `exhaust-the-design-space`, `experience-first`, `guard-the-context-window`,
   `never-block-on-the-human`, `explain-the-number`, `know-when-to-stop`.
@@ -132,13 +133,11 @@ Community and derived skills carry `license` and `metadata.*` provenance in thei
 Upstream `LICENSE` next to them ([ADR-0001](./docs/adr/0001-vendor-community-skills.md),
 [ADR-0010](./docs/adr/0010-stack-skills-rewrite-community-content.md)).
 
-`writing-for-agents` (from `mattpocock-skills`) and `skill-creator` are tools for authoring this repo and
-are not part of any plugin; both live only at this repo's project scope. `writing-for-agents` is vendored
-as a project skill in [.claude/skills/writing-for-agents/](./.claude/skills/writing-for-agents/), with the
-same provenance frontmatter and `LICENSE` as a plugin Community skill (checked by
-`scripts/check-provenance.py`). `skill-creator` is enabled in
-[.claude/settings.json](./.claude/settings.json). The `mattpocock-skills` plugin itself is not enabled here,
-since its other skills would compete with the vendored copies for routing.
+`skill-creator` is a tool for authoring this repo and is not part of any plugin; it is enabled only at
+this repo's project scope, in [.claude/settings.json](./.claude/settings.json). `writing-for-agents` (from
+`mattpocock-skills`) ships in `foundation`, since `retro` calls it in every Project. The
+`mattpocock-skills` plugin itself is not enabled here, since its other skills would compete with the
+vendored copies for routing.
 
 ### Releasing
 

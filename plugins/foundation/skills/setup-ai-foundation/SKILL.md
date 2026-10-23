@@ -1,6 +1,6 @@
 ---
 name: setup-ai-foundation
-description: "Configure this Project for the ai-foundation plugins: Project language, Linear issue tracker and labels, docs backend, per-Project MCP and tokens, and project-scoped plugins. Idempotent; re-run it to migrate after a major."
+description: "Configure this Project for the ai-foundation plugins: Project language, Linear issue tracker, labels and statuses, docs backend, per-Project MCP and tokens, and project-scoped plugins. Idempotent; re-run it to migrate after a major."
 disable-model-invocation: true
 ---
 
@@ -20,6 +20,7 @@ Each section is a file in `sections/` holding its questions, the files it render
 | [language](sections/language.md) | always |
 | [issue-tracker](sections/issue-tracker.md) | always |
 | [linear-labels](sections/linear-labels.md) | always; provisions Linear labels through MCP instead of writing files |
+| [linear-statuses](sections/linear-statuses.md) | always; provisions Linear workflow statuses instead of writing files |
 | [docs-backend](sections/docs-backend.md) | always; with `notion`, also provisions the Notion tree through MCP |
 | [forge](sections/forge.md) | `engineering` is enabled |
 | [environment](sections/environment.md) | `engineering` is enabled |
@@ -69,7 +70,7 @@ Exit 0 means the file is unchanged: list it as unchanged and leave it out of the
 grep -rnE 'lin_api_|ntn_|secret_|gh[pousr]_|glpat-|Bearer [^$]' "$stage"
 ```
 
-A section that provisions through MCP (linear-labels, and docs-backend with `notion`) shows its plan here next to the file diffs.
+A section that provisions through MCP (linear-labels, linear-statuses, and docs-backend with `notion`) shows its plan here next to the file diffs.
 
 Done when every rendered file is either listed as unchanged or has its diff shown, every provisioning plan is shown, and the secret check printed nothing.
 
