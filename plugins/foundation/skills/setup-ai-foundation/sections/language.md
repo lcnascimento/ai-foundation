@@ -22,6 +22,7 @@ The `## Language` managed section of the instructions file, with `{{language}}` 
 ## Language
 
 - **Project language: {{language}}.** Talk to the user, and write documentation (`README.md`, `GLOSSARY.md` definitions, ADRs and other documents, Notion pages), issue tracker content and PR bodies, in {{language}}.
+- **Every message to the user is in {{language}}**, whatever language the surrounding context is in: the first reply to a bare slash command or ticket ID, progress updates between tool calls, and summaries of subagent reports. Subagent briefs and reports stay in English.
 - **Code artifacts are English**: code, identifiers, comments, commit messages, branch names, PR titles, skills, `CLAUDE.md`/`AGENTS.md` and `docs/agents/*`. `GLOSSARY.md` terms stay identical to the code identifiers.
 ```
 

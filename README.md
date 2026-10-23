@@ -26,7 +26,8 @@ defined in [GLOSSARY.md](./GLOSSARY.md); decisions live in [docs/adr/](./docs/ad
   `never-block-on-the-human`, `explain-the-number`, `know-when-to-stop`.
 - **Hooks:** the Principles index (`SessionStart`, `SubagentStart`) and the git guardrail (`PreToolUse` on
   `Bash`), which always denies force-push, push to the default branch, PR/MR merge, `--no-verify` and
-  destructive local commands. Merging stays with the user.
+  destructive local commands. Merging stays with the user. A `UserPromptSubmit` hook reminds the agent of
+  the Project language on every prompt.
 
 ### `engineering`
 
@@ -124,7 +125,7 @@ plugins/<name>/
   .claude-plugin/plugin.json   # manifest: version, dependencies
   CHANGELOG.md                 # Keep a Changelog, one entry per release
   skills/<skill>/SKILL.md      # skills; principles/references/ holds the Principle texts
-  hooks/hooks.json             # Principles index, git guardrail (foundation)
+  hooks/hooks.json             # Principles index, git guardrail and language reminder (foundation)
 ```
 
 Community and derived skills carry `license` and `metadata.*` provenance in their frontmatter and ship the

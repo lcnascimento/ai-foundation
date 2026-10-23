@@ -9,6 +9,26 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.6.0] - 2026-10-22
+
+### Added
+
+- Project language reminder `UserPromptSubmit` hook: reads the `**Project language: X.**` line from
+  `CLAUDE.md` (else `AGENTS.md`) and reminds the agent, on every prompt, to talk to the user in X. A prompt
+  that is only a slash command or a ticket ID left an all-English context (skills, `docs/agents/*`, the
+  Principles index) that pulled replies to English. No output when no language is set or it is English.
+
+### Changed
+
+- `setup-ai-foundation` writes a stricter `## Language` section: every message to the user is in the Project
+  language, including the first reply to a bare slash command or ticket ID, progress updates between tool
+  calls and summaries of subagent reports, which stay in English.
+
+### Migration
+
+- Re-run `/setup-ai-foundation` in each Project to get the new `## Language` section. The hook works with the
+  old section too.
+
 ## [0.3.0] - 2026-10-19
 
 ### Changed
