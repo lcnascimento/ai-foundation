@@ -9,13 +9,19 @@ the normal permission flow untouched.
 
 Denied: force-push in any form, push to the default branch (resolved from
 `origin/HEAD`, including implicit pushes), `gh pr merge`, `glab mr merge`,
-`--no-verify`, `reset --hard`, `clean -f`, `branch -D`, `checkout .`,
-`restore .`, `stash drop`, `stash clear`. Commands nested in `eval`, `xargs`
-and shell `-c` scripts (`bash -c`, `bash -lc`, ...) are checked too.
+`--no-verify`, `reset --hard`, `clean -f`, `worktree remove --force`,
+`checkout .`, `restore .`, `stash drop`, `stash clear`, and `branch -D` unless
+every branch named is proven merged (see `merge_proven`). Commands nested in
+`eval`, `xargs` and shell `-c` scripts (`bash -c`, `bash -lc`, ...) are checked
+too.
+
+`engineering:clean-worktrees` imports this file for `merge_proven` and
+`forge_heads`.
 """
 
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -41,19 +47,37 @@ XARGS_WITH_VALUE = {
 }
 # `git commit` short options that consume the rest of their cluster or the next word.
 COMMIT_SHORT_WITH_VALUE = set("mFCctS")
+# `git branch` options that take a separate value.
+BRANCH_WITH_VALUE = {"-u", "--set-upstream-to", "--contains", "--no-contains", "--merged", "--no-merged", "--points-at", "--sort", "--format"}
+
+UNPROVEN_DELETE = (
+    "`branch -D` deletes a branch whose merge can't be proven: its tip is neither in "
+    "`<remote>/<default>` nor the head of a merged PR/MR"
+)
+STOP = (
+    "Only the human may do this, in interactive and AFK sessions alike. "
+    "Do not retry or work around it: follow the `know-when-to-stop` Principle "
+    "(load it with `foundation:principles know-when-to-stop`) and raise a "
+    "BLOCKED / TRIED / NEED block."
+)
+HAND_OFF = (
+    "Do not retry or work around it. Under the `know-when-to-stop` Principle, hand "
+    "the user the cleanup command ready to run (`{segment}`) and go on with the rest "
+    "of the work."
+)
 
 
-def git(cwd, *args):
+def run(cmd, cwd):
+    """stdout of `cmd`, or None when it fails, is missing or takes over 5 s."""
     try:
-        out = subprocess.run(
-            ["git", "-C", cwd, *args],
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
+        out = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=5)
     except (OSError, subprocess.SubprocessError):
         return None
     return out.stdout.strip() if out.returncode == 0 else None
+
+
+def git(cwd, *args):
+    return run(["git", "-C", cwd, *args], cwd)
 
 
 def strip_heads(ref):
@@ -73,6 +97,61 @@ def default_branches(cwd, remote):
         if ref and "/" in ref:
             return {ref.split("/", 1)[1]}
     return {"main", "master"}
+
+
+def branch_remote(cwd, branch):
+    remote = git(cwd, "config", f"branch.{branch}.remote")
+    return remote if remote and remote != "." else "origin"
+
+
+def forge_repo(cwd, remote):
+    """(kind, host, path) of `remote` when it is on GitHub or GitLab, else None."""
+    url = git(cwd, "remote", "get-url", remote) or ""
+    m = re.match(r"^(?:[a-z+]+://)?(?:[^@/]+@)?([^/:]+)(?::\d+)?[:/](.+?)(?:\.git)?/?$", url)
+    if not m:
+        return None
+    host, path = m.groups()
+    for kind in ("github", "gitlab"):
+        if kind in host:
+            return kind, host, path
+    return None
+
+
+def forge_heads(cwd, remote, branch, state):
+    """Head commits of the PRs/MRs from `branch` in `state` (`merged` or `open`).
+
+    None when the forge is unknown, its CLI is missing, fails or times out.
+    """
+    repo = forge_repo(cwd, remote)
+    if not repo:
+        return None
+    kind, host, path = repo
+    if kind == "github":
+        cmd = ["gh", "pr", "list", "--repo", f"{host}/{path}", "--head", branch, "--state", state, "--json", "headRefOid"]
+        key = "headRefOid"
+    else:
+        cmd = ["glab", "mr", "list", "--repo", f"https://{host}/{path}", "--source-branch", branch, "--output", "json"]
+        cmd += ["--merged"] if state == "merged" else []
+        key = "sha"
+    out = run(cmd, cwd)
+    try:
+        return [item[key] for item in json.loads(out)] if out is not None else None
+    except (ValueError, TypeError, KeyError):
+        return None
+
+
+def merge_proven(cwd, branch):
+    """Whether `branch` can go without losing work: its tip is in `<remote>/<default>`
+    (local proof), or is the head of a merged PR/MR from it (forge proof, for squash
+    and rebase merges)."""
+    tip = git(cwd, "rev-parse", "--verify", "--quiet", f"refs/heads/{branch}^{{commit}}")
+    if not tip:
+        return False
+    remote = branch_remote(cwd, branch)
+    for default in default_branches(cwd, remote):
+        if git(cwd, "merge-base", "--is-ancestor", tip, f"refs/remotes/{remote}/{default}") is not None:
+            return True
+    return tip in (forge_heads(cwd, remote, branch, "merged") or [])
 
 
 def tokenize(command):
@@ -246,7 +325,13 @@ def check_git(words, cwd):
         deleting = "d" in flags or "--delete" in rest
         forcing = "f" in flags or "--force" in rest
         if "D" in flags or (deleting and forcing):
-            return "`branch -D` deletes a branch with unmerged work"
+            names = positionals(rest, BRANCH_WITH_VALUE)
+            if not names or not all(merge_proven(cwd, b) for b in names):
+                return UNPROVEN_DELETE
+    if sub == "worktree":
+        pos = positionals(rest)
+        if pos and pos[0] == "remove" and ("--force" in rest or "f" in short_flags(rest)):
+            return "`worktree remove --force` deletes uncommitted changes and untracked files"
     if sub in ("checkout", "restore"):
         pos = positionals(rest, {"-s", "--source", "-b", "-B", "--orphan", "--conflict"})
         if any(p in WHOLE_TREE for p in pos):
@@ -303,7 +388,7 @@ def xargs_command(words):
 
 
 def check(command, cwd, depth=0):
-    """Return (segment, reason) for the first forbidden part of `command`, or None."""
+    """Return (segment, reason, next step) for the first forbidden part of `command`, or None."""
     for words in segments(tokenize(command)):
         words = strip_prefixes(words)
         if not words:
@@ -330,7 +415,9 @@ def check(command, cwd, depth=0):
             if found:
                 return found
         if reason:
-            return " ".join(words), reason
+            segment = " ".join(words)
+            next_step = HAND_OFF.format(segment=segment) if reason == UNPROVEN_DELETE else STOP
+            return segment, reason, next_step
     return None
 
 
@@ -346,14 +433,8 @@ def main():
     found = check(command, cwd)
     if not found:
         return 0
-    segment, reason = found
-    message = (
-        f"Blocked by the foundation git guardrail: `{segment}` ({reason}). "
-        "Only the human may do this, in interactive and AFK sessions alike. "
-        "Do not retry or work around it: follow the `know-when-to-stop` Principle "
-        "(load it with `foundation:principles know-when-to-stop`) and raise a "
-        "BLOCKED / TRIED / NEED block."
-    )
+    segment, reason, next_step = found
+    message = f"Blocked by the foundation git guardrail: `{segment}` ({reason}). {next_step}"
     json.dump(
         {
             "hookSpecificOutput": {
