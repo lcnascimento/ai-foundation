@@ -12,7 +12,8 @@ Records the Project's forge, its CLI and host, and the commit, PR and CI convent
 - `git remote get-url origin` (else the first remote): its host and `<owner>/<repo>` path. Host `github.com` proposes GitHub; host `gitlab.com` or any host containing `gitlab` proposes GitLab with that host. Any other host proposes nothing: ask.
 - `git symbolic-ref --short refs/remotes/origin/HEAD` (strip `origin/`): the default branch; else `main`.
 - `git log --oneline -20`: whether history exists and whether most subjects already follow Conventional Commits (`type(scope): ...`).
-- `.github/workflows/*.yml` and `.gitlab-ci.yml`: whether CI exists.
+- `.github/workflows/*.yml` and `.gitlab-ci.yml`: whether CI exists, its jobs and the command each one runs, and whether the workflows skip draft {{change}}s (a `draft` condition on the jobs or the workflow).
+- `docs/agents/forge.md`'s `### Local gate` list: the previous local gate.
 - `git check-ignore -q .claude/worktrees/x`: whether the worktrees of `implement` and `implement-spec` are already ignored.
 
 ## Ask
@@ -20,6 +21,7 @@ Records the Project's forge, its CLI and host, and the commit, PR and CI convent
 1. The forge and host: GitHub or GitLab, recommending the previous answer, else the one proposed from the remote. The CLI follows the forge.
 2. The repository (`<owner>/<repo>`) and the default branch, recommending the previous answers, else the detected ones.
 3. The commit convention: `git-log` (recommended) or `conventional`. Recommend the previous answer, else `git-log`; mention `conventional` when the history already follows it.
+4. Only when CI exists: the local gate, the commands `implement-spec` runs after each merge to its integration branch in place of the remote CI. Recommend the previous answer, else the local command of each CI job, leaving out jobs that need more than the repository's own tooling (a whole running stack, cloud credentials) or that take minutes longer than the rest. An empty answer leaves the local gate out.
 
 ## Render
 
@@ -42,7 +44,9 @@ Placeholders that follow the forge:
 - `git-log`: `Follow the style of \`git log\` (subject length, tense, prefixes, body). With no history, write an imperative sentence without a prefix, e.g. "Add order export endpoint".`
 - `conventional`: `Use Conventional Commits: \`<type>(<optional scope>): <imperative summary>\`, with \`feat\`, \`fix\`, \`docs\`, \`refactor\`, \`test\`, \`chore\`, \`ci\` or \`build\` as the type, and \`!\` or a \`BREAKING CHANGE:\` footer for breaking changes.`
 
-`{{ci}}` is, verbatim, `CI is defined in \`{{ci_config}}\` and is the deterministic gate: a {{change}} merges only when it passes. Read a failing run with \`{{ci_logs}}\`.` when CI exists, else `No CI is configured yet.`
+`{{ci}}` is, verbatim, `CI is defined in \`{{ci_config}}\` and is the deterministic gate: a {{change}} merges only when it passes. Read a failing run with \`{{ci_logs}}\`.` when CI exists, else `No CI is configured yet.` When the workflows skip draft {{change}}s, append, verbatim, ` Draft {{change}}s run no CI: marking one ready for review starts it.`
+
+`{{local_gate}}` is, when the local gate has commands, a `### Local gate` heading, the line `\`implement-spec\` runs these commands, in order, from the repository root after each merge to its integration branch, in place of the remote CI:`, and one bullet per command in backticks; else nothing.
 
 **`docs/agents/forge.md`**, owned Markdown, every placeholder filled (fill the ones nested in `{{create}}` and `{{ci}}` too):
 
@@ -69,6 +73,8 @@ This Project's code lives on {{forge}} at `{{host}}`. Use the `{{cli}}` CLI for 
 ## CI
 
 {{ci}}
+
+{{local_gate}}
 ```
 
 **`.gitignore`**, ensured line, only when `git check-ignore -q .claude/worktrees/x` fails:
