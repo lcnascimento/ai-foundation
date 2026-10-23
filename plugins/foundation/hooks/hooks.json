@@ -1,5 +1,5 @@
 {
-  "description": "foundation hooks: the git guardrail (ADR-0009) and the Principles index.",
+  "description": "foundation hooks: the git guardrail (ADR-0009), the Principles index and the Project language reminder.",
   "hooks": {
     "PreToolUse": [
       {
@@ -30,6 +30,17 @@
           {
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/principles-index.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/language-reminder.sh\"",
             "timeout": 10
           }
         ]
