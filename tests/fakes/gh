@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-"""Fake `gh pr list --head <b> --state <s> --json ...`: prints `$FAKE_GH_DIR/<s>/<b>.json`, else `[]`."""
-
 import os
 import sys
 

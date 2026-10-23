@@ -6,17 +6,6 @@ Reads the tool call JSON on stdin. When any part of the command is forbidden,
 prints a Claude Code permission decision (`deny`) naming the blocked command and
 the `know-when-to-stop` Principle. Otherwise prints nothing and exits 0, leaving
 the normal permission flow untouched.
-
-Denied: force-push in any form, push to the default branch (resolved from
-`origin/HEAD`, including implicit pushes), `gh pr merge`, `glab mr merge`,
-`--no-verify`, `reset --hard`, `clean -f`, `worktree remove --force`,
-`checkout .`, `restore .`, `stash drop`, `stash clear`, and `branch -D` unless
-every branch named is proven merged (see `merge_proven`). Commands nested in
-`eval`, `xargs` and shell `-c` scripts (`bash -c`, `bash -lc`, ...) are checked
-too.
-
-`engineering:clean-worktrees` imports this file for `merge_proven`,
-`branch_remote` and `forge_prs`.
 """
 
 import json
@@ -47,7 +36,6 @@ XARGS_WITH_VALUE = {
 }
 # `git commit` short options that consume the rest of their cluster or the next word.
 COMMIT_SHORT_WITH_VALUE = set("mFCctS")
-# `git branch` options that take a separate value.
 BRANCH_WITH_VALUE = {"-u", "--set-upstream-to", "--contains", "--no-contains", "--merged", "--no-merged", "--points-at", "--sort", "--format"}
 
 UNPROVEN_DELETE = (
@@ -60,6 +48,7 @@ STOP = (
     "(load it with `foundation:principles know-when-to-stop`) and raise a "
     "BLOCKED / TRIED / NEED block."
 )
+TIMEOUT_SECONDS = 5
 HAND_OFF = (
     "Do not retry or work around it. Under the `know-when-to-stop` Principle, hand "
     "the user the cleanup command ready to run (`{segment}`) and go on with the rest "
@@ -68,9 +57,8 @@ HAND_OFF = (
 
 
 def run(cmd, cwd):
-    """stdout of `cmd`, or None when it fails, is missing or takes over 5 s."""
     try:
-        out = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=5)
+        out = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=TIMEOUT_SECONDS)
     except (OSError, subprocess.SubprocessError):
         return None
     return out.stdout.strip() if out.returncode == 0 else None
@@ -105,7 +93,6 @@ def branch_remote(cwd, branch):
 
 
 def forge_repo(cwd, remote):
-    """(kind, host, path) of `remote` when it is on GitHub or GitLab, else None."""
     url = git(cwd, "config", "--get", f"remote.{remote}.url") or ""
     m = re.match(r"^(?:[a-z+]+://)?(?:[^@/]+@)?([^/:]+)(?::\d+)?[:/](.+?)(?:\.git)?/?$", url)
     if not m:
@@ -118,10 +105,6 @@ def forge_repo(cwd, remote):
 
 
 def forge_prs(cwd, remote, branch, state):
-    """[{"number", "head"}] of the PRs/MRs from `branch` in `state` (`merged` or `open`).
-
-    None when the forge is unknown, or its CLI is missing, fails or takes over 5 s.
-    """
     repo = forge_repo(cwd, remote)
     if not repo:
         return None
@@ -141,9 +124,6 @@ def forge_prs(cwd, remote, branch, state):
 
 
 def merge_proven(cwd, branch):
-    """Whether `branch` can go without losing work: its tip is in `<remote>/<default>`
-    (local proof), or is the head of a merged PR/MR from it (forge proof, for squash
-    and rebase merges)."""
     tip = git(cwd, "rev-parse", "--verify", "--quiet", f"refs/heads/{branch}^{{commit}}")
     if not tip:
         return False
@@ -388,7 +368,6 @@ def xargs_command(words):
 
 
 def check(command, cwd, depth=0):
-    """Return (segment, reason, next step) for the first forbidden part of `command`, or None."""
     for words in segments(tokenize(command)):
         words = strip_prefixes(words)
         if not words:

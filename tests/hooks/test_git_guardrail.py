@@ -57,6 +57,9 @@ CASES = [
     ("git clean --force -d", FEATURE, True),
     ("git branch -D old", FEATURE, True),
     ("git branch --delete --force old", FEATURE, True),
+    ("git branch -D unmerged", FEATURE, True),
+    ("git branch -D merged unmerged", FEATURE, True),
+    ("git branch -d -f unmerged", FEATURE, True),
     ("git checkout .", FEATURE, True),
     ("git checkout -- .", FEATURE, True),
     ("git restore .", FEATURE, True),
@@ -87,10 +90,6 @@ CASES = [
     ("git push -o ci.skip -f origin feature", FEATURE, True),
     ("git push --push-option ci.skip origin main", FEATURE, True),
     ("git push --exec /usr/bin/git-receive-pack origin main", FEATURE, True),
-    # Force-deleting a branch whose merge can't be proven.
-    ("git branch -D unmerged", FEATURE, True),
-    ("git branch -D merged unmerged", FEATURE, True),
-    ("git branch -d -f unmerged", FEATURE, True),
     # Allowed.
     ("git commit -m 'work on main'", DEFAULT, False),
     ("git add -A && git commit -m wip", DEFAULT, False),
@@ -104,7 +103,6 @@ CASES = [
     ("git push --dry-run origin feature", FEATURE, False),
     ("git commit -m 'never use --force here'", FEATURE, False),
     ("git branch -d merged", FEATURE, False),
-    # Force-deleting branches whose tips are in origin/main.
     ("git branch -D merged", FEATURE, False),
     ("git branch -D merged feature", FEATURE, False),
     ("git branch --delete --force merged", FEATURE, False),
@@ -226,8 +224,6 @@ class GitGuardrailTest(unittest.TestCase):
 
 
 class ForgeProofTest(unittest.TestCase):
-    """`branch -D` of a squash- or rebase-merged branch, proven by the forge's merged PR."""
-
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.repo = make_repo(self.tmp.name)

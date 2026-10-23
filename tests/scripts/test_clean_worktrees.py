@@ -1,13 +1,4 @@
 #!/usr/bin/env python3
-"""Scenario test of the `engineering:clean-worktrees` script.
-
-Each test builds a checkout whose `origin` is a GitHub URL rewritten to a local
-bare repo, with one worktree under `.claude/worktrees/`, and a fake `gh` on the
-PATH serving the PRs in `$FAKE_GH_DIR/<state>/<branch>.json`.
-
-Usage: python3 tests/scripts/test_clean_worktrees.py
-"""
-
 import json
 import os
 import shutil
@@ -70,6 +61,9 @@ class CleanWorktreesTest(unittest.TestCase):
         self.assertEqual(out.returncode, 0, out.stderr)
         return out.stdout
 
+    def rewind_local_main(self, commit):
+        git(self.checkout, "reset", "--quiet", "--keep", commit)
+
     def branches(self):
         return git(self.checkout, "branch", "--format=%(refname:short)").split()
 
@@ -84,7 +78,7 @@ class CleanWorktreesTest(unittest.TestCase):
         git(self.checkout, "merge", "--quiet", "--no-ff", "-m", "Merge abc-1", "abc-1")
         git(self.checkout, "push", "--quiet", "origin", "main")
         git(self.checkout, "push", "--quiet", "origin", "--delete", "abc-1")
-        git(self.checkout, "reset", "--quiet", "--keep", "HEAD~1")  # local main stays behind
+        self.rewind_local_main("HEAD~1")
 
         output = self.clean()
 
@@ -129,7 +123,7 @@ class CleanWorktreesTest(unittest.TestCase):
         head = git(self.checkout, "rev-parse", "HEAD")
         git(self.checkout, "commit", "--quiet", "--allow-empty", "-m", "remote only")
         git(self.checkout, "push", "--quiet", "origin", "main")
-        git(self.checkout, "reset", "--quiet", "--keep", head)
+        self.rewind_local_main(head)
 
         self.clean()
 

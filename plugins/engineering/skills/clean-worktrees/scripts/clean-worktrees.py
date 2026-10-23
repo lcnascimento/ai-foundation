@@ -1,21 +1,4 @@
 #!/usr/bin/env python3
-"""Remove the worktrees under `<checkout>/.claude/worktrees/` whose work is merged.
-
-Fetches `origin` with `--prune`, then for each worktree there prints one line:
-
-- `skip <path> (<branch>): <why>`: uncommitted changes or untracked files (ignored
-  files don't count), or an open PR/MR;
-- `removed <path> (<branch>)`: the branch passes the foundation git guardrail's
-  merge proof, so `git worktree remove <path>` (never `--force`) and
-  `git branch -D <branch>` ran;
-- `keep <path> (<branch>): <why>`: anything else.
-
-The merge proof is the guardrail's own `merge_proven`, imported from the
-`foundation` plugin, so the script and the guardrail never disagree. The user's
-checkout is never pulled or checked out.
-
-Usage: clean-worktrees.py [checkout]   (default: the current directory)
-"""
 
 import importlib.util
 import json
@@ -24,15 +7,16 @@ import subprocess
 import sys
 from pathlib import Path
 
-REMOTE = "origin"
+GUARDRAIL = Path("hooks") / "git-guardrail.py"
+PLUGINS_DIR = Path(__file__).resolve().parents[4]
 
 
-def guardrail_path():
-    """git-guardrail.py of the sibling `foundation` plugin in this repo, else the installed one."""
-    here = Path(__file__).resolve()
-    sibling = here.parents[4] / "foundation" / "hooks" / "git-guardrail.py"
-    if sibling.is_file():
-        return sibling
+def sibling_guardrail():
+    path = PLUGINS_DIR / "foundation" / GUARDRAIL
+    return path if path.is_file() else None
+
+
+def installed_guardrail():
     config = Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude")
     try:
         installed = json.loads((config / "plugins" / "installed_plugins.json").read_text())["plugins"]
@@ -41,14 +25,14 @@ def guardrail_path():
     for key, installs in installed.items():
         if key.startswith("foundation@"):
             for install in installs:
-                path = Path(install.get("installPath", "")) / "hooks" / "git-guardrail.py"
+                path = Path(install.get("installPath", "")) / GUARDRAIL
                 if path.is_file():
                     return path
     return None
 
 
 def load_guardrail():
-    path = guardrail_path()
+    path = sibling_guardrail() or installed_guardrail()
     if not path:
         sys.exit("clean-worktrees: the foundation plugin's git-guardrail.py was not found")
     spec = importlib.util.spec_from_file_location("git_guardrail", path)
@@ -62,7 +46,6 @@ def git(cwd, *args):
 
 
 def worktrees(checkout):
-    """(path, branch or None, prunable) of every worktree, the main one first."""
     out, entry = [], {}
     for line in git(checkout, "worktree", "list", "--porcelain").stdout.splitlines() + [""]:
         key, _, value = line.partition(" ")
@@ -105,10 +88,12 @@ def clean(guardrail, checkout, worktree):
         return f"skip {rel} ({branch}): PR #{open_prs[0]['number']} is open"
     if not guardrail.merge_proven(str(checkout), branch):
         return f"keep {rel} ({branch}): {unproven_reason(guardrail, checkout, branch)}"
-    for args in (["worktree", "remove", str(path)], ["branch", "-D", branch]):
-        done = git(checkout, *args)
-        if done.returncode != 0:
-            return f"keep {rel} ({branch}): `git {' '.join(args)}` failed: {done.stderr.strip()}"
+    removal = git(checkout, "worktree", "remove", str(path))
+    if removal.returncode != 0:
+        return f"keep {rel} ({branch}): `git worktree remove` failed: {removal.stderr.strip()}"
+    deletion = git(checkout, "branch", "-D", branch)
+    if deletion.returncode != 0:
+        return f"removed {rel}, kept branch {branch}: `git branch -D` failed: {deletion.stderr.strip()}"
     return f"removed {rel} ({branch})"
 
 
@@ -119,13 +104,15 @@ def main():
     if not all_worktrees:
         sys.exit(f"clean-worktrees: {start} is not in a git repository")
     checkout = all_worktrees[0]["path"]
-    fetch = git(checkout, "fetch", "--prune", "--quiet", REMOTE)
-    if fetch.returncode != 0:
-        print(f"warning: `git fetch --prune {REMOTE}` failed, proving against stale refs: {fetch.stderr.strip()}")
-    root = checkout / ".claude" / "worktrees"
-    for worktree in all_worktrees[1:]:
-        if worktree["path"].parent == root:
-            print(clean(guardrail, checkout, worktree))
+    root = (checkout / ".claude" / "worktrees").resolve()
+    mine = [w for w in all_worktrees[1:] if w["path"].resolve().parent == root]
+    remotes = {"origin"} | {guardrail.branch_remote(str(checkout), w["branch"]) for w in mine if w["branch"]}
+    for remote in sorted(remotes):
+        fetch = git(checkout, "fetch", "--prune", "--quiet", remote)
+        if fetch.returncode != 0:
+            print(f"warning: `git fetch --prune {remote}` failed, proving against stale refs: {fetch.stderr.strip()}")
+    for worktree in mine:
+        print(clean(guardrail, checkout, worktree))
     return 0
 
 
