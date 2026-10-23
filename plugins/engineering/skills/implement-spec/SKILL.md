@@ -20,23 +20,25 @@ The tickets are not a list of steps. They are a **task graph** with blocking rel
 
 Communication to and from subagents should be sparse. Communicate primarily through **context pointers**: to the spec, tickets, research notes, and previous commits. Don't duplicate information already available via pointers. Report progress on the spec as comments, and touch the spec issue itself only to change its state.
 
+Every branch and worktree directory is named after its issue identifier in lowercase (`abc-12`): the integration branch after the spec, each implementer's branch after its ticket. Worktrees live in `<checkout>/.claude/worktrees/`, where `<checkout>` is the absolute path of the user's checkout. Issues move through the **work lifecycle** in `docs/agents/issue-tracker.md` (**start**, **hand off for review**, **close**).
+
 **Implementer subagents** should be run in the background where possible for maximum concurrency.
 
 ## Steps
 
-1. Create a **notes directory** outside the repo, accessible by all future subagents. Read the spec from the issue tracker once, with its comments, and save it there as `spec.md`; from then on, read the spec from that file, never from the tracker. If you edit the spec in the tracker, rewrite `spec.md` at once. Read the tickets to understand the task graph.
+1. Create a **notes directory** outside the repo, accessible by all future subagents. Read the spec from the issue tracker once, with its comments, and save it there as `spec.md`; from then on, read the spec from that file, never from the tracker. If you edit the spec in the tracker, rewrite `spec.md` at once. Read the tickets to understand the task graph. Move the spec to **start**.
 
 2. (optional) Use an **exploration subagent** to conduct any exploration required by the tickets - relevant codebase files or external documentation. Pass it the path to `spec.md`. Ensure the exploration subagent can save files - it should save its markdown notes in the notes directory. This lets **implementer subagents** focus on implementation rather than exploration.
 
-3. Create the integration branch in its own worktree, outside the user's checkout (`git worktree add <path> -b <integration branch> <default branch>`), and never switch the user's checkout to it: the user keeps working there. Run every git command on the integration branch from that worktree (merges, pushes, `git branch -d`, so it sees each merged branch as merged in step 5), and pass its path to every **merger subagent**. Open a draft PR after the first merge in step 5 (a branch with no commits ahead of main can't open one), marked as closing the spec and tickets when the issue tracker closes work through PRs. The PR is what starts the CI behind the **CI gate**.
+3. Create the integration branch in its own worktree (`git worktree add <checkout>/.claude/worktrees/<spec id> -b <spec id> <default branch>`), and never switch the user's checkout to it: the user keeps working there. Run every git command on the integration branch from that worktree (merges, pushes, `git branch -d`, so it sees each merged branch as merged in step 5), and pass its path to every **merger subagent**. Open a draft PR after the first merge in step 5 (a branch with no commits ahead of main can't open one), with a closing line for the spec and for every ticket, as the work lifecycle's **approval** says. The PR is what starts the CI behind the **CI gate**.
 
-4. Use **implementer subagents** to implement each ticket, each in its own worktree (`isolation: "worktree"`) on its own branch. Pass each one the path to `spec.md`, its ticket ID, the integration branch name and the name of its own branch. Before retrying a ticket, remove the worktree of the previous attempt. Each implementer subagent:
+4. Use **implementer subagents** to implement each ticket, each in its own worktree on its own branch. Create both yourself, starting at the integration branch tip: `git worktree add -B <ticket id> <checkout>/.claude/worktrees/<ticket id> <integration branch>` (`-B` also resets the branch of a previous attempt; remove that attempt's worktree first). Move the ticket to **start**, then launch the subagent without `isolation`, passing it the path to `spec.md`, its ticket ID, its worktree path and the integration branch name. Each implementer subagent:
+   - runs every command from its worktree, and changes nothing outside it;
    - reads its own ticket from the issue tracker and the spec from `spec.md`, never from the tracker;
-   - starts with `git switch -C <its branch> <integration branch>`, since the worktree starts from the default branch;
    - calls the Skill tool with `tdd` to build the ticket;
    - merges the integration branch tip into its own branch before reporting done
 
-5. Once an **implementer subagent** completes, merge its work to the integration branch with a **merger subagent**, working in the integration worktree, which runs the **CI gate** on the merge and reports its verdict without fixing anything. Merge one branch at a time, and start the next merge only on `green`. Handle `red` as the **CI gate** says. A red the tickets expect does not block the next merge: the batches of a wide refactor that `to-tickets` sequenced to turn green only at their integrate ticket. Once the **merger subagent** has merged a branch, whatever the verdict, remove its worktree and branch (`git worktree remove <path>`, `git branch -d <branch>`).
+5. Once an **implementer subagent** completes, merge its work to the integration branch with a **merger subagent**, working in the integration worktree, which runs the **CI gate** on the merge and reports its verdict without fixing anything. Merge one branch at a time, and start the next merge only on `green`. On `green`, move the ticket to **hand off for review**. Handle `red` as the **CI gate** says. A red the tickets expect does not block the next merge: the batches of a wide refactor that `to-tickets` sequenced to turn green only at their integrate ticket. Once the **merger subagent** has merged a branch, whatever the verdict, remove its worktree and branch (`git worktree remove <path>`, `git branch -d <branch>`).
 
 6. If this changes the **frontier** of available tickets, kick off more **implementer subagents** to work on the new tickets. This allows for maximum concurrency.
 
@@ -44,7 +46,7 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 8. Run the **CI gate** on the integration branch, handling `red` as it says. When the workflows skip draft PRs, mark the PR ready to start them, and move it back to draft (`gh pr ready --undo`) if a check goes red.
 
-9. Mark the PR ready for review once its CI is green. If the issue tracker doesn't close work through PRs, resolve each ticket the way it closes work. The work is done only when the PR's CI is green.
+9. Mark the PR ready for review once its CI is green, and move the spec to **hand off for review**. The work is done only when the PR's CI is green. The PR's merge closes the spec and its tickets; when the user approves the work in the session instead, close the spec and every ticket yourself.
 
 10. Clean up the **implementer subagent** worktrees and branches still left: tickets abandoned, or **implementer subagents** that failed before a merge. The integration worktree stays until the PR merges; then remove it and its branch.
 

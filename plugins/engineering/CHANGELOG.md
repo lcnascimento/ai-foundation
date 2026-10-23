@@ -9,6 +9,20 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.8.0] - 2026-10-22
+
+### Changed
+
+- `implement` and `implement-spec` name every branch and worktree directory after its issue identifier in
+  lowercase (`abc-12`), with worktrees in `.claude/worktrees/` of the user's checkout. `implement` with a
+  ticket now works in a worktree of its own instead of the current branch.
+- `implement-spec` creates each implementer's worktree itself, at the integration branch tip, instead of
+  using `isolation: "worktree"`; the implementer no longer runs `git switch -C`.
+- Both move issues through the work lifecycle of `docs/agents/issue-tracker.md` (needs `foundation` 0.4.0):
+  start when work begins, hand off for review when a ticket's merge is green or the PR is ready, and close on
+  the PR's merge, whose body now always closes the spec and every ticket, or when the user approves the work
+  in the session.
+
 ## [0.7.0] - 2026-10-21
 
 ### Changed
