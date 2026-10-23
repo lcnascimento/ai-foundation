@@ -9,6 +9,18 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.5.0] - 2026-10-22
+
+### Added
+
+- `writing-for-agents` (Community, mattpocock): the writing guide for skills and `CLAUDE.md`/`AGENTS.md`,
+  moved here from this repo's project scope. `retro` already called it, so in any other Project the call
+  found no skill.
+
+### Changed
+
+- `retro` calls `foundation:writing-for-agents` by its qualified name (ADR-0008) and is now a derived skill.
+
 ## [0.3.0] - 2026-10-19
 
 ### Changed
