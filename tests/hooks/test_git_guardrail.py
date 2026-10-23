@@ -10,6 +10,7 @@ Usage: python3 tests/hooks/test_git_guardrail.py
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -17,6 +18,7 @@ import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 HOOK = os.path.join(ROOT, "plugins", "foundation", "hooks", "git-guardrail.py")
+FAKES = os.path.join(ROOT, "tests", "fakes")
 
 DEFAULT, FEATURE = "main", "feature"
 
@@ -55,6 +57,9 @@ CASES = [
     ("git clean --force -d", FEATURE, True),
     ("git branch -D old", FEATURE, True),
     ("git branch --delete --force old", FEATURE, True),
+    ("git branch -D unmerged", FEATURE, True),
+    ("git branch -D merged unmerged", FEATURE, True),
+    ("git branch -d -f unmerged", FEATURE, True),
     ("git checkout .", FEATURE, True),
     ("git checkout -- .", FEATURE, True),
     ("git restore .", FEATURE, True),
@@ -62,6 +67,8 @@ CASES = [
     ("git stash drop", FEATURE, True),
     ("git stash drop stash@{0}", FEATURE, True),
     ("git stash clear", FEATURE, True),
+    ("git worktree remove --force ../wt", FEATURE, True),
+    ("git worktree remove -f ../wt", FEATURE, True),
     # Compound commands with one forbidden part.
     ("git add . && git commit -m wip && git push --force", FEATURE, True),
     ("make test; git reset --hard", FEATURE, True),
@@ -96,7 +103,11 @@ CASES = [
     ("git push --dry-run origin feature", FEATURE, False),
     ("git commit -m 'never use --force here'", FEATURE, False),
     ("git branch -d merged", FEATURE, False),
+    ("git branch -D merged", FEATURE, False),
+    ("git branch -D merged feature", FEATURE, False),
+    ("git branch --delete --force merged", FEATURE, False),
     ("git checkout -b topic", FEATURE, False),
+    ("git worktree remove ../wt", FEATURE, False),
     ("git checkout src/app.go", FEATURE, False),
     ("git restore --staged .", FEATURE, False),
     ("git reset --soft HEAD~1", FEATURE, False),
@@ -131,12 +142,20 @@ def make_repo(base):
         ["push", "--quiet", "origin", DEFAULT],
         ["remote", "set-head", "origin", DEFAULT],
         ["branch", FEATURE],
+        ["checkout", "--quiet", "-b", "merged"],
+        ["commit", "--quiet", "--allow-empty", "-m", "merged work"],
+        ["checkout", "--quiet", DEFAULT],
+        ["merge", "--quiet", "--no-ff", "-m", "merge", "merged"],
+        ["push", "--quiet", "origin", DEFAULT],
+        ["checkout", "--quiet", "-b", "unmerged"],
+        ["commit", "--quiet", "--allow-empty", "-m", "unmerged work"],
+        ["checkout", "--quiet", DEFAULT],
     ):
         run(["git", *args], work)
     return work
 
 
-def invoke(command, cwd):
+def invoke(command, cwd, env=None):
     event = {
         "session_id": "test",
         "hook_event_name": "PreToolUse",
@@ -150,9 +169,14 @@ def invoke(command, cwd):
         capture_output=True,
         text=True,
         cwd=cwd,
+        env=env,
         check=False,
     )
     return out
+
+
+def git_out(cwd, *args):
+    return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=True).stdout.strip()
 
 
 class GitGuardrailTest(unittest.TestCase):
@@ -197,6 +221,55 @@ class GitGuardrailTest(unittest.TestCase):
             [sys.executable, HOOK], input=json.dumps(event), capture_output=True, text=True, check=False
         )
         self.assertEqual((out.returncode, out.stdout), (0, ""))
+
+
+class ForgeProofTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = make_repo(self.tmp.name)
+        run(["git", "remote", "set-url", "origin", "https://github.com/acme/app.git"], self.repo)
+        run(["git", "checkout", "--quiet", "-b", "squashed"], self.repo)
+        run(["git", "commit", "--quiet", "--allow-empty", "-m", "squashed work"], self.repo)
+        run(["git", "checkout", "--quiet", DEFAULT], self.repo)
+        self.tip = git_out(self.repo, "rev-parse", "squashed")
+        self.prs = os.path.join(self.tmp.name, "prs")
+        os.makedirs(os.path.join(self.prs, "merged"))
+        self.git_only = os.path.join(self.tmp.name, "bin")
+        os.makedirs(self.git_only)
+        os.symlink(shutil.which("git"), os.path.join(self.git_only, "git"))
+        path = os.pathsep.join([FAKES, self.git_only, os.path.dirname(sys.executable)])
+        self.env = {**os.environ, "PATH": path, "FAKE_GH_DIR": self.prs}
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def merged_pr(self, head):
+        with open(os.path.join(self.prs, "merged", "squashed.json"), "w") as f:
+            json.dump([{"number": 7, "headRefOid": head}], f)
+
+    def decision(self, env):
+        out = invoke("git branch -D squashed", self.repo, env)
+        self.assertEqual(out.returncode, 0, out.stderr)
+        return json.loads(out.stdout)["hookSpecificOutput"] if out.stdout.strip() else None
+
+    def test_allows_a_branch_whose_tip_is_a_merged_pr_head(self):
+        self.merged_pr(self.tip)
+        self.assertIsNone(self.decision(self.env))
+
+    def test_denies_when_the_merged_pr_head_differs_from_the_tip(self):
+        self.merged_pr("0" * 40)
+        reason = self.decision(self.env)["permissionDecisionReason"]
+        self.assertIn("merge can't be proven", reason)
+        self.assertIn("hand the user the cleanup command ready to run (`git branch -D squashed`)", reason)
+        self.assertIn("know-when-to-stop", reason)
+
+    def test_denies_without_a_merged_pr(self):
+        self.assertEqual(self.decision(self.env)["permissionDecision"], "deny")
+
+    def test_denies_when_gh_is_missing(self):
+        self.merged_pr(self.tip)
+        env = {**self.env, "PATH": self.git_only}
+        self.assertEqual(self.decision(env)["permissionDecision"], "deny")
 
 
 if __name__ == "__main__":

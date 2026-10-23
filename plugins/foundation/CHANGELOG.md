@@ -9,6 +9,16 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.7.0] - 2026-10-23
+
+### Changed
+
+- Git guardrail: `branch -D` (and `branch -d -f`) goes through when every branch named is proven merged, its
+  tip in `<remote>/<default>` or the head of a merged PR/MR from it (`gh`/`glab` by the remote's host, 5 s
+  timeout), so squash and rebase merges clean up too. Unproven, the deny tells the agent to hand the user the
+  cleanup command instead of raising a `BLOCKED` block.
+- Git guardrail: denies `worktree remove --force`, which deletes uncommitted changes and untracked files.
+
 ## [0.6.0] - 2026-10-23
 
 ### Changed
