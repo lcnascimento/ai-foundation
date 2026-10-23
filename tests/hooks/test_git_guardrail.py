@@ -238,15 +238,18 @@ class ForgeProofTest(unittest.TestCase):
         self.tip = git_out(self.repo, "rev-parse", "squashed")
         self.prs = os.path.join(self.tmp.name, "prs")
         os.makedirs(os.path.join(self.prs, "merged"))
-        git_dir = os.path.dirname(shutil.which("git"))
-        self.env = {**os.environ, "PATH": f"{FAKES}{os.pathsep}{git_dir}", "FAKE_GH_DIR": self.prs}
+        self.git_only = os.path.join(self.tmp.name, "bin")
+        os.makedirs(self.git_only)
+        os.symlink(shutil.which("git"), os.path.join(self.git_only, "git"))
+        path = os.pathsep.join([FAKES, self.git_only, os.path.dirname(sys.executable)])
+        self.env = {**os.environ, "PATH": path, "FAKE_GH_DIR": self.prs}
 
     def tearDown(self):
         self.tmp.cleanup()
 
     def merged_pr(self, head):
         with open(os.path.join(self.prs, "merged", "squashed.json"), "w") as f:
-            json.dump([{"headRefOid": head}], f)
+            json.dump([{"number": 7, "headRefOid": head}], f)
 
     def decision(self, env):
         out = invoke("git branch -D squashed", self.repo, env)
@@ -269,7 +272,7 @@ class ForgeProofTest(unittest.TestCase):
 
     def test_denies_when_gh_is_missing(self):
         self.merged_pr(self.tip)
-        env = {**self.env, "PATH": os.path.dirname(shutil.which("git"))}
+        env = {**self.env, "PATH": self.git_only}
         self.assertEqual(self.decision(env)["permissionDecision"], "deny")
 
 

@@ -9,6 +9,19 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.10.0] - 2026-10-23
+
+### Added
+
+- `clean-worktrees`: a script that fetches `origin --prune` and removes each worktree in `.claude/worktrees/`
+  whose branch passes the git guardrail's merge proof, with its branch, and reports the ones it skips (live
+  work, open PR) or keeps (merge not proven). Needs `foundation` 0.7.0, whose guardrail it imports.
+
+### Changed
+
+- `implement` and `implement-spec` call `clean-worktrees` before creating their worktrees and point to it in
+  their final message; `implement-spec` step 10 cleans up with it.
+
 ## [0.9.0] - 2026-10-23
 
 ### Changed

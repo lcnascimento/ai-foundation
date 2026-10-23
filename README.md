@@ -27,7 +27,8 @@ defined in [GLOSSARY.md](./GLOSSARY.md); decisions live in [docs/adr/](./docs/ad
   `never-block-on-the-human`, `explain-the-number`, `know-when-to-stop`.
 - **Hooks:** the Principles index (`SessionStart`, `SubagentStart`) and the git guardrail (`PreToolUse` on
   `Bash`), which always denies force-push, push to the default branch, PR/MR merge, `--no-verify` and
-  destructive local commands. Merging stays with the user.
+  destructive local commands, and allows `branch -D` only of branches proven merged. Merging stays with the
+  user.
 
 ### `engineering`
 
@@ -36,7 +37,7 @@ defined in [GLOSSARY.md](./GLOSSARY.md); decisions live in [docs/adr/](./docs/ad
 | Investigation | `how`, `why`, `teach` |
 | Spec and tickets | `to-spec`, `to-tickets`, `triage` |
 | Design | `codebase-design`, `improve-codebase-architecture` |
-| Build | `tdd`, `implement`, `implement-spec` (manual) |
+| Build | `tdd`, `implement`, `implement-spec` (manual), `clean-worktrees` |
 | Verify and review | `verify`, `code-review` (the native `/code-review`, `/security-review` and `/simplify` complement it) |
 | Debug | `diagnosing-bugs`, `resolving-merge-conflicts` |
 | PR | `pr` |

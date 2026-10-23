@@ -15,8 +15,8 @@ every branch named is proven merged (see `merge_proven`). Commands nested in
 `eval`, `xargs` and shell `-c` scripts (`bash -c`, `bash -lc`, ...) are checked
 too.
 
-`engineering:clean-worktrees` imports this file for `merge_proven` and
-`forge_heads`.
+`engineering:clean-worktrees` imports this file for `merge_proven`,
+`branch_remote` and `forge_prs`.
 """
 
 import json
@@ -106,7 +106,7 @@ def branch_remote(cwd, branch):
 
 def forge_repo(cwd, remote):
     """(kind, host, path) of `remote` when it is on GitHub or GitLab, else None."""
-    url = git(cwd, "remote", "get-url", remote) or ""
+    url = git(cwd, "config", "--get", f"remote.{remote}.url") or ""
     m = re.match(r"^(?:[a-z+]+://)?(?:[^@/]+@)?([^/:]+)(?::\d+)?[:/](.+?)(?:\.git)?/?$", url)
     if not m:
         return None
@@ -117,25 +117,25 @@ def forge_repo(cwd, remote):
     return None
 
 
-def forge_heads(cwd, remote, branch, state):
-    """Head commits of the PRs/MRs from `branch` in `state` (`merged` or `open`).
+def forge_prs(cwd, remote, branch, state):
+    """[{"number", "head"}] of the PRs/MRs from `branch` in `state` (`merged` or `open`).
 
-    None when the forge is unknown, its CLI is missing, fails or times out.
+    None when the forge is unknown, or its CLI is missing, fails or takes over 5 s.
     """
     repo = forge_repo(cwd, remote)
     if not repo:
         return None
     kind, host, path = repo
     if kind == "github":
-        cmd = ["gh", "pr", "list", "--repo", f"{host}/{path}", "--head", branch, "--state", state, "--json", "headRefOid"]
-        key = "headRefOid"
+        cmd = ["gh", "pr", "list", "--repo", f"{host}/{path}", "--head", branch, "--state", state, "--json", "number,headRefOid"]
+        number, head = "number", "headRefOid"
     else:
         cmd = ["glab", "mr", "list", "--repo", f"https://{host}/{path}", "--source-branch", branch, "--output", "json"]
         cmd += ["--merged"] if state == "merged" else []
-        key = "sha"
+        number, head = "iid", "sha"
     out = run(cmd, cwd)
     try:
-        return [item[key] for item in json.loads(out)] if out is not None else None
+        return [{"number": item[number], "head": item[head]} for item in json.loads(out)] if out is not None else None
     except (ValueError, TypeError, KeyError):
         return None
 
@@ -151,7 +151,7 @@ def merge_proven(cwd, branch):
     for default in default_branches(cwd, remote):
         if git(cwd, "merge-base", "--is-ancestor", tip, f"refs/remotes/{remote}/{default}") is not None:
             return True
-    return tip in (forge_heads(cwd, remote, branch, "merged") or [])
+    return any(pr["head"] == tip for pr in forge_prs(cwd, remote, branch, "merged") or [])
 
 
 def tokenize(command):
