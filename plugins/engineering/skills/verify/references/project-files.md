@@ -45,6 +45,10 @@ How to bring up what the tests and the running change need, and where to look wh
 ```markdown
 # Environment
 
+## Setup
+
+- `make setup`
+
 ## Start
 
 - `docker compose up -d postgres redis`
@@ -73,6 +77,7 @@ How to bring up what the tests and the running change need, and where to look wh
 - Sentry project `orders-api`; LGTM dashboard `Orders`.
 ```
 
+- **Setup**: commands that prepare a fresh checkout (dependencies, tools, local `.env` files), run from its root in order. The worktree script of `implement` and `implement-spec` runs them in every worktree it creates, after copying the ignored files listed in `.worktreeinclude`.
 - **Start / Stop**: commands to start and stop dependencies. `verify` starts them before the tests and stops them at the end.
 - **Variables**: how variables and `.env` are set up. Name the variables; never write their secret values.
 - **Health check**: the command that shows the environment is ready.
