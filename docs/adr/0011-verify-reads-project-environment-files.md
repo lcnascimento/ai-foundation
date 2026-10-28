@@ -4,7 +4,7 @@
 
 It reads two optional Project files, following the `docs/agents/*.md` pattern (ADR-0007):
 
-- `docs/agents/environment.md`: how to start and stop dependencies, variables and `.env`, the health check, where local logs, metrics and traces live, and an optional field for remote signals (Sentry, LGTM). Troubleshooting skills such as `diagnosing-bugs` use it too.
+- `docs/agents/environment.md`: how to start and stop dependencies, variables and `.env`, the health check, where local logs, metrics and traces live, and an optional field for remote signals (Sentry, LGTM). Troubleshooting skills such as `diagnosing-bugs` use it too, and `engineering`'s worktree script runs the commands of its optional Setup section in each worktree that `implement` and `implement-spec` create.
 - `docs/agents/verify.md`: the commands for each layer, deliberate exclusions, and what counts as passing.
 
 Without `verify.md`, the default runs only the root `Makefile`: `make format` (the changes it applies are committed), then `make lint`, then `make test`. Whether those targets delegate to inner Makefiles is up to the Project. A missing target is reported as a skipped layer, not a failure. If `environment.md` exists, the environment is started before `make test`.
@@ -25,4 +25,5 @@ The output is a `Verification` block listing each layer, its command, and its re
 - Projects that only use `/run` get no environment from `verify`, and the two can drift if both exist.
 - Homelab signals (Sentry, LGTM) reach `verify` only through the optional field in `environment.md`. Real integration remains open.
 - `implement` and `implement-spec` carry one more line in their derivation.
+- A script, not only agents, parses `environment.md`: the worktree script reads the Setup section's list items, so `project-files.md` must keep that section's shape (`- ` items with the command in backticks).
 - The native `verify` skill competes with `engineering:verify` for routing on its description. The first version of this ADR said no native `verify` existed. `implement*` and the docs already used the qualified name, so only the ADR changed.

@@ -9,6 +9,14 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.8.0] - 2026-10-27
+
+### Changed
+
+- The `environment` section proposes a **Setup** section in `docs/agents/environment.md` (`make setup` when
+  the `Makefile` has that target, else asks for the command), read by `engineering`'s worktree script, and
+  renders it first. The Agent skills entry mentions setting up a fresh checkout.
+
 ## [0.7.0] - 2026-10-23
 
 ### Changed

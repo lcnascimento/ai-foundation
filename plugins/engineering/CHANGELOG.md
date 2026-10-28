@@ -9,6 +9,28 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.11.0] - 2026-10-27
+
+### Added
+
+- `scripts/worktree.sh`: `add <id> [--base <ref>] [--reset]` creates `<checkout>/.claude/worktrees/<id>` on
+  branch `<id>` (from `origin`'s default branch, freshly fetched, when `--base` is left out), copies the ignored
+  files listed in `.worktreeinclude` from the checkout without overwriting any, and runs the **Setup** commands
+  of `docs/agents/environment.md`, so a new worktree is ready for the tests. A rerun completes an existing
+  worktree; `--reset` recreates the branch from the base and refuses a worktree with uncommitted changes.
+  `remove <id>` refuses uncommitted changes or a branch not merged into the current HEAD (or its upstream),
+  leaving both in place, and is idempotent. It has no force mode: forced removal stays the user's, as the git
+  guardrail requires.
+- `project-files.md`: an optional **Setup** section in `docs/agents/environment.md`, with the commands that
+  prepare a fresh checkout.
+
+### Changed
+
+- `implement` and `implement-spec` create their worktrees with `worktree.sh add`, retry a ticket with
+  `add --reset`, and `implement-spec` removes merged ticket worktrees with `worktree.sh remove`.
+  `clean-worktrees` is unchanged: its guardrail merge proof also covers squash merges, which `remove`'s
+  `git branch -d` rule does not.
+
 ## [0.10.1] - 2026-10-23
 
 ### Fixed

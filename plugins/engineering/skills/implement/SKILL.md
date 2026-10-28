@@ -16,7 +16,7 @@ If the user passes a ticket reference, fetch it from the issue tracker and state
 
 - move the ticket to the **start** status of the work lifecycle in `docs/agents/issue-tracker.md`;
 - call the Skill tool with `engineering:clean-worktrees`, so merged work from earlier tickets leaves no worktree behind;
-- work in a worktree of its own, outside the user's checkout, with the branch and the worktree directory both named after the ticket identifier in lowercase (`abc-12`): `git worktree add .claude/worktrees/abc-12 -b abc-12 <default branch>`. Run every command of this work from that worktree.
+- work in a worktree of its own, outside the user's checkout, with the branch and the worktree directory both named after the ticket identifier in lowercase (`abc-12`): `bash "${CLAUDE_SKILL_DIR}/../../scripts/worktree.sh" add abc-12`, which starts it at `origin`'s default branch, sets it up as `docs/agents/environment.md` says, and prints its path last. Run every command of this work from that worktree.
 
 Call the Skill tool with "tdd" where possible, at pre-agreed seams.
 

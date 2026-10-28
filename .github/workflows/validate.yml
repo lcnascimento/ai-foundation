@@ -38,6 +38,9 @@ jobs:
       - name: Test the clean-worktrees script
         run: python3 tests/scripts/test_clean_worktrees.py
 
+      - name: Test the worktree script
+        run: python3 tests/scripts/test_worktree.py
+
   principles-and-provenance:
     # Both need PyYAML; one job installs it once.
     runs-on: ubuntu-latest
