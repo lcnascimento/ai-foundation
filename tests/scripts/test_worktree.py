@@ -15,7 +15,7 @@ def git(cwd, *args):
 class WorktreeTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
-        base = os.path.realpath(self.tmp.name)
+        self.base = base = os.path.realpath(self.tmp.name)
         self.origin = os.path.join(base, "origin.git")
         self.checkout = os.path.join(base, "app")
         git(base, "init", "--quiet", "--bare", "--initial-branch", "main", self.origin)
@@ -41,9 +41,27 @@ class WorktreeTest(unittest.TestCase):
     def path(self, name):
         return os.path.join(self.checkout, ".claude", "worktrees", name)
 
+    def commit_files(self, files):
+        for rel, content in files.items():
+            self.write(self.checkout, rel, content)
+        git(self.checkout, "add", *files)
+        git(self.checkout, "commit", "--quiet", "-m", "add " + ", ".join(files))
+
+    def write(self, base, rel, content):
+        os.makedirs(os.path.dirname(os.path.join(base, rel)), exist_ok=True)
+        with open(os.path.join(base, rel), "w") as f:
+            f.write(content)
+
+    def read(self, base, rel):
+        with open(os.path.join(base, rel)) as f:
+            return f.read()
+
+    def branches(self):
+        return git(self.checkout, "branch", "--format=%(refname:short)").split()
+
     def push_upstream_commit(self, message):
-        other = os.path.join(self.tmp.name, "other")
-        git(self.tmp.name, "clone", "--quiet", self.origin, other)
+        other = os.path.join(self.base, "other")
+        git(self.base, "clone", "--quiet", self.origin, other)
         git(other, "-c", "user.email=o@example.com", "-c", "user.name=O", "commit", "--quiet", "--allow-empty", "-m", message)
         git(other, "push", "--quiet", "origin", "main")
         return git(other, "rev-parse", "HEAD")
@@ -76,21 +94,6 @@ class WorktreeTest(unittest.TestCase):
 
         self.assertEqual(out.returncode, 0, out.stderr)
         self.assertEqual(git(self.path("abc-2"), "rev-parse", "HEAD"), git(self.checkout, "rev-parse", "integ"))
-
-    def commit_files(self, files):
-        for rel, content in files.items():
-            self.write(self.checkout, rel, content)
-        git(self.checkout, "add", *files)
-        git(self.checkout, "commit", "--quiet", "-m", "add " + ", ".join(files))
-
-    def write(self, base, rel, content):
-        os.makedirs(os.path.dirname(os.path.join(base, rel)), exist_ok=True)
-        with open(os.path.join(base, rel), "w") as f:
-            f.write(content)
-
-    def read(self, base, rel):
-        with open(os.path.join(base, rel)) as f:
-            return f.read()
 
     def test_add_copies_the_listed_ignored_files_and_a_rerun_never_overwrites_them(self):
         self.commit_files({".gitignore": ".env\nnode_modules/\n", ".worktreeinclude": ".env\nsvc/*/.env\n"})
@@ -184,9 +187,6 @@ class WorktreeTest(unittest.TestCase):
 
         self.assertNotEqual(out.returncode, 0)
         self.assertIn("got '../escape'", out.stderr)
-
-    def branches(self):
-        return git(self.checkout, "branch", "--format=%(refname:short)").split()
 
     def test_remove_from_the_integration_worktree_deletes_a_ticket_merged_into_it(self):
         integ = self.path("spec-1")
