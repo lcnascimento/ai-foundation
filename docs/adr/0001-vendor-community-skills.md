@@ -4,6 +4,6 @@ Community skills are copied into `plugins/<plugin>/skills/<name>/`, pinned to an
 
 ## Consequences
 
-- MCP servers follow the opposite policy: depend on the official plugin (e.g. `linear@claude-plugins-official`, via `allowCrossMarketplaceDependenciesOn`), and ship an own `.mcp.json` only when no official plugin exists or own configuration is needed. An MCP is configuration pointing at an endpoint, with nothing to curate.
+- MCP servers are never plugin dependencies: Project setup writes them into the Project's `.mcp.json` (`linear`, and `notion` with that docs backend), named per Project so each one reaches only its own workspace. An MCP is configuration pointing at an endpoint, with nothing to curate. Depending on the official plugins (`linear@claude-plugins-official`, `notion@claude-plugins-official`) was dropped: the dependency re-enabled them at user scope on every plugin load, so a user who removed them got them back, and their single user-scope sign-in reached the same workspace from every Project, against ADR-0003.
 - The Marketplace is the single source of skills in Projects: once a skill is vendored, its upstream plugin is uninstalled there. Plugins used only to build this repo stay in this repo's project scope.
 - Updates reach Projects only with a plugin `version` bump.
