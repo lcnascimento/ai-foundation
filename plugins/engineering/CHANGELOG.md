@@ -9,6 +9,15 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.13.0] - 2026-11-13
+
+### Changed
+
+- `implement`, `implement-spec` and `address-pr-feedback`: in AFK mode, a last **Retro** step calls
+  `foundation:retro` on the session's issue and PR, after the Delivery comment and the status change, or after a
+  BLOCKED stop. In `implement-spec` only the orchestrator runs it, once per Spec. A failure of the retro changes
+  nothing in the delivery.
+
 ## [0.12.0] - 2026-11-12
 
 ### Added

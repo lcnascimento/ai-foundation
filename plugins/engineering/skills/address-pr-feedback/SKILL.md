@@ -60,3 +60,7 @@ Leave every thread unresolved: the reviewer decides when the conversation ends. 
 ## 7. Hand off
 
 Move the PR's issue to **hand off for review**. Never close it: the PR's merge is the approval.
+
+## 8. Retro
+
+Only in AFK mode, when `AI_FOUNDATION_AFK` is `1` (`printenv AI_FOUNDATION_AFK`). As the last step, after the Delivery comment and step 7, or after the BLOCKED/TRIED/NEED comment of a stop in step 5, call the Skill tool with `foundation:retro`, passing the PR's issue and the PR. A failure of the retro changes nothing in the delivery.
