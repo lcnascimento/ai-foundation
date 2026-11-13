@@ -129,6 +129,21 @@ class WorktreeTest(unittest.TestCase):
         self.assertEqual(self.read(self.path("abc-5"), "setup.out"), f"one\n{self.path('abc-5')}\n")
         self.assertFalse(os.path.exists(os.path.join(self.path("abc-5"), "start.out")))
 
+    def test_add_runs_only_the_setup_commands_of_a_file_with_a_concurrency_section(self):
+        self.commit_files({
+            ".gitignore": "setup.out\n",
+            "docs/agents/environment.md": (
+                "# Environment\n\n## Setup\n\n- `echo one > setup.out`\n\n"
+                "## Remote signals\n\n- `echo remote >> setup.out`\n\n"
+                "## Concurrency\n\n- Max implementers: 3\n"
+            ),
+        })
+
+        out = self.run_script("add", "abc-8", "--base", "main")
+
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertEqual(self.read(self.path("abc-8"), "setup.out"), "one\n")
+
     def test_a_setup_command_reading_stdin_does_not_swallow_the_next_ones(self):
         self.commit_files({
             ".gitignore": "setup.out\n",
