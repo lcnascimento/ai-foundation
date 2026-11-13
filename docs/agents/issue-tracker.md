@@ -15,7 +15,7 @@ Refer to issues by title in prose; the identifier (`AI-12`) and URL ride inside 
 
 ## Work lifecycle
 
-Skills that build a ticket (`implement`, `implement-spec`) name lifecycle roles. Each maps to a workflow status of team AI Foundation, set with `save_issue` and `state: "<status>"`:
+Skills that work on a ticket (`implement`, `implement-spec`, `address-pr-feedback`) name lifecycle roles. Each maps to a workflow status of team AI Foundation, set with `save_issue` and `state: "<status>"`:
 
 | Role | Status |
 | - | - |
