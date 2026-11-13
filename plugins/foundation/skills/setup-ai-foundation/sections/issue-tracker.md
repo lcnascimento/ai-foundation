@@ -9,7 +9,7 @@ Always. Linear is the only tracker.
 ## Detect
 
 - `.mcp.json`: the server whose `url` is on `mcp.linear.app`. Its key is `{{server}}`; with none, `{{server}}` is `linear`.
-- `docs/agents/issue-tracker.md`: its `team **<name>** (key \`<KEY>\`)` line is the previous team answer, and its `| integrate | \`<status>\` |` row the previous integrate answer.
+- `docs/agents/issue-tracker.md`: its `team **<name>** (key \`<KEY>\`)` line is the previous team answer, and the status cell of its integrate row the previous integrate answer. The integrate row is the Work lifecycle row whose first cell is `integrate`, contains `` `integrate` `` in backticks, or is the role's name in the Project's language: `` | integrar (`integrate`) | `Done` | `` counts.
 - `.envrc` and `.gitignore`: whether they exist and whether `.env` is already ignored (`git check-ignore -q .env`).
 
 ## Ask

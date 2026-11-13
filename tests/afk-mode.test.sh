@@ -1,15 +1,4 @@
 #!/usr/bin/env bash
-# Contract test for the AFK mode hook, stdin -> stdout.
-#
-#   - foundation's hooks/hooks.json runs hooks/afk-mode.sh on SessionStart and
-#     SubagentStart, and no other plugin ships or wires it;
-#   - with AI_FOUNDATION_AFK=1, on both events, the output is hookSpecificOutput
-#     JSON for the event received, with the AFK rule in additionalContext;
-#   - without AI_FOUNDATION_AFK=1 (unset, empty or another value), the hook
-#     exits 0 and prints nothing.
-#
-# Usage: tests/afk-mode.test.sh
-# Needs: bash, jq.
 set -euo pipefail
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"

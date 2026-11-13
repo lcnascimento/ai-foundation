@@ -9,6 +9,21 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.9.0] - 2026-11-12
+
+### Added
+
+- `hooks/afk-mode.sh`: with `AI_FOUNDATION_AFK=1`, on SessionStart and SubagentStart, injects the AFK mode rule
+  (no `AskUserQuestion`, assumptions recorded on the issue, stops only under `know-when-to-stop`, all questions
+  in one comment, never close a Spec, four kinds of AFK comment). Without the flag it prints nothing.
+
+### Changed
+
+- The `issue-tracker` section asks for the **integrate** status (recommends `In Review`) and renders its row
+  and an Integrate bullet in the work lifecycle, which now also names `address-pr-feedback`. Detect reads the
+  previous answer from the integrate row, also when its role name is translated.
+- The `environment` section asks for **Concurrency** (`Max implementers: <n>`) and renders it last.
+
 ## [0.8.0] - 2026-10-27
 
 ### Changed

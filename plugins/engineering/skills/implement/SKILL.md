@@ -33,6 +33,6 @@ When the work is done, move the ticket to the **hand off for review** status, an
 
 AFK mode is on when `AI_FOUNDATION_AFK` is `1` (`printenv AI_FOUNDATION_AFK`); the foundation plugin then injects an `# AFK mode` rule into the session. Decide it from the flag alone, never from whether the checkout is a linked worktree. With the flag off, skip this section. With it on, these rules replace the matching steps above:
 
-- **Branch**: the current worktree and branch are the integration branch, as the delegating agent opened them. Run every command from the current worktree, create no worktree or branch of your own for it, and never rename the current branch.
+- **Branch**: the current worktree and branch are the work branch, as the delegating agent opened them. Run every command from the current worktree, create no worktree or branch of your own for it, and never rename the current branch.
 - **Seams**: the seams the Spec or the Ticket names count as confirmed with the user, so `tdd`'s confirmation is already met. Before the first test at a seam neither names, post it, with what it catches and what it misses, as an Assumption comment on the Ticket, and then treat it as confirmed.
 - **Review point**: pass `engineering:code-review` the merge-base of the current branch with `origin`'s default branch as its fixed point (`git merge-base HEAD origin/<default branch>`, after `git fetch origin`).

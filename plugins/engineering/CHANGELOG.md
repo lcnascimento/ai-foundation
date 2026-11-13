@@ -9,6 +9,33 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.12.0] - 2026-11-12
+
+### Added
+
+- `address-pr-feedback`: addresses the feedback on the current branch's PR (red checks, a failed Sonar quality
+  gate, unresolved review threads, comments since the last push) on that branch. It gives each item a verdict
+  (fix, decline, ask or argue), fixes and verifies, waits for the CI verdict, answers every thread without
+  resolving it, and cites the Spec in each commit.
+- `implement` and `implement-spec`: an **AFK mode** section, on when `AI_FOUNDATION_AFK=1`. The skill works on
+  the current worktree and branch, treats the seams the Spec or Ticket names as confirmed and posts any other
+  as an Assumption comment, and reviews from the merge-base with `origin`'s default branch. `implement-spec`
+  also resumes from the tracker and git: only the **integrate** status counts a ticket as integrated, a ticket
+  in **start** with a merge commit reruns the merge gate, an interrupted attempt's changes are stashed before
+  `--reset`, and an open PR is reused with every closing line.
+- `implement-spec`: an **implementer limit**, read by `scripts/max-implementers.sh` from the
+  `- Max implementers: <n>` line of the new **Concurrency** section of `docs/agents/environment.md`
+  (`project-files.md`).
+- `to-spec`: takes an optional `/wayfinder` map, read by a subagent, and stops while the map has open child
+  tickets or a non-empty Not yet specified section.
+
+### Changed
+
+- `implement` and `implement-spec` can be invoked by the model, so a delegating agent can load them.
+- `implement-spec` moves a merged ticket to the new **integrate** role of the work lifecycle, falling back to
+  **hand off for review** when the lifecycle has no integrate row.
+- `implement` pushes to the branch's open PR instead of opening another.
+
 ## [0.11.0] - 2026-10-27
 
 ### Added

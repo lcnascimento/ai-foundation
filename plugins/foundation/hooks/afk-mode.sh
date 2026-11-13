@@ -1,9 +1,4 @@
 #!/usr/bin/env bash
-# AFK mode: with AI_FOUNDATION_AFK=1, on SessionStart and SubagentStart, inject
-# the rule for working with no human in the session. Otherwise print nothing.
-#
-# Contract: reads the hook event JSON on stdin; writes
-# {"hookSpecificOutput":{"hookEventName":<event>,"additionalContext":<rule>}}.
 # Pure bash + awk: hooks run on machines where jq may be missing.
 set -euo pipefail
 
