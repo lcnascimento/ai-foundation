@@ -37,10 +37,10 @@ defined in [GLOSSARY.md](./GLOSSARY.md); decisions live in [docs/adr/](./docs/ad
 | Investigation | `how`, `why`, `teach` |
 | Spec and tickets | `to-spec`, `to-tickets`, `triage` |
 | Design | `codebase-design`, `improve-codebase-architecture` |
-| Build | `tdd`, `implement`, `implement-spec` (manual), `clean-worktrees` |
+| Build | `tdd`, `implement`, `implement-spec`, `clean-worktrees` |
 | Verify and review | `verify`, `code-review` (the native `/code-review`, `/security-review` and `/simplify` complement it) |
 | Debug | `diagnosing-bugs`, `resolving-merge-conflicts` |
-| PR | `pr` |
+| PR | `pr`, `address-pr-feedback` |
 | Stack | `golang`, `nextjs` |
 
 Its 20 Principles reach every session through the same index hook. Load any Principle's full text with
@@ -177,6 +177,8 @@ secret). Run these evals by hand **before every minor or major bump**. Use the a
 | Verify routing | Before declaring a change done, the agent loads `engineering:verify` and reports a `Verification` block. |
 | Documentation routing | "Record this decision" loads `foundation:documentation` and writes `docs/adr/…` in the repo backend. |
 | Review in `implement*` | `/implement` calls `engineering:code-review`, never the native `/code-review`. |
+| AFK no question | With `AI_FOUNDATION_AFK=1`, delegating a Ticket ("implement ABC-12") loads `engineering:implement` from the description, makes no `AskUserQuestion` call, and posts the seams under test as a comment on the Ticket before the first test. |
+| AFK current branch | With `AI_FOUNDATION_AFK=1`, run from a worktree on a branch of its own, `implement` never runs `worktree.sh add` or `git switch -c`/`checkout -b`, commits on the current branch, and passes `git merge-base HEAD origin/<default>` to `engineering:code-review`. |
 | Idempotent setup | Running `/setup-ai-foundation` twice with the same answers produces no diff on the second run. This covers the file-writing part only; MCP provisioning is out of scope. |
 
 Record the results (pass/fail per scenario) in the release PR body. A regression blocks the bump.

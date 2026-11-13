@@ -1,6 +1,6 @@
 # Section: environment
 
-Writes `docs/agents/environment.md`, which `engineering:verify` and troubleshooting skills read to start the Project's dependencies and find its logs, metrics and traces (ADR-0011), and the worktree script of `engineering:implement` and `engineering:implement-spec` reads to set up each worktree. Its format is owned by `engineering:verify`'s `references/project-files.md` (`plugins/engineering/skills/verify/references/project-files.md` in the Marketplace). Render that format exactly; don't add sections.
+Writes `docs/agents/environment.md`, which `engineering:verify` and troubleshooting skills read to start the Project's dependencies and find its logs, metrics and traces (ADR-0011), and the worktree script of `engineering:implement` and `engineering:implement-spec` reads to set up each worktree. `engineering:implement-spec` also reads its Concurrency to cap the implementers it runs at once. Its format is owned by `engineering:verify`'s `references/project-files.md` (`plugins/engineering/skills/verify/references/project-files.md` in the Marketplace). Render that format exactly; don't add sections.
 
 ## Runs when
 
@@ -16,7 +16,7 @@ Writes `docs/agents/environment.md`, which `engineering:verify` and troubleshoot
 
 ## Ask
 
-When `docs/agents/environment.md` exists, recommend it unchanged and show only what detection found that it lacks (a new compose service, a new Makefile target), each as an optional addition. Otherwise recommend the proposal below, section by section, and ask for **Remote signals** (recommend none). Without a `setup` target, also ask for the command that prepares a fresh checkout (recommend none).
+When `docs/agents/environment.md` exists, recommend it unchanged and show only what detection found that it lacks (a new compose service, a new Makefile target), each as an optional addition. Otherwise recommend the proposal below, section by section, and ask for **Remote signals** and **Concurrency** (recommend none for both). Without a `setup` target, also ask for the command that prepares a fresh checkout (recommend none).
 
 Proposal, each section omitted when it has nothing to say:
 
@@ -27,10 +27,11 @@ Proposal, each section omitted when it has nothing to say:
 - **Health check**: the `make` `health`/`healthcheck` target if any; else, when every compose service declares a `healthcheck`, `` `docker compose [-f <file>] ps` shows every service healthy (Start waits for it with `--wait`). ``; else ask.
 - **Local signals**: `Logs: \`docker compose [-f <file>] logs -f <service>\`` for the services, or `make logs` when that target exists. For a service whose image is Prometheus, Grafana, Jaeger, Tempo, Loki or an OpenTelemetry collector, a `Metrics:`/`Dashboards:`/`Traces:` line with `http://localhost:<published port>`.
 - **Remote signals**: only what the user names.
+- **Concurrency**: `Max implementers: <n>` when the user names a limit on parallel implementers. Without it, there is no limit.
 
 ## Render
 
-**`docs/agents/environment.md`**, owned Markdown: the approved content in the format of `project-files.md`, `# Environment` first, then the sections in its order (Setup, Start, Stop, Variables, Health check, Local signals, Remote signals), one blank line between blocks, list items as `- `, a trailing newline. When the previous file is accepted unchanged, render it byte for byte. When every section is empty, render no file and leave out the entry below.
+**`docs/agents/environment.md`**, owned Markdown: the approved content in the format of `project-files.md`, `# Environment` first, then the sections in its order (Setup, Start, Stop, Variables, Health check, Local signals, Remote signals, Concurrency), one blank line between blocks, list items as `- `, a trailing newline. When the previous file is accepted unchanged, render it byte for byte. When every section is empty, render no file and leave out the entry below.
 
 ## Agent skills entries
 

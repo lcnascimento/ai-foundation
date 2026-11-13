@@ -75,6 +75,10 @@ How to bring up what the tests and the running change need, and where to look wh
 ## Remote signals
 
 - Sentry project `orders-api`; LGTM dashboard `Orders`.
+
+## Concurrency
+
+- Max implementers: 3
 ```
 
 - **Setup**: commands that prepare a fresh checkout (dependencies, tools, local `.env` files), run from its root in order. The worktree script of `implement` and `implement-spec` runs them in every worktree it creates, after copying the ignored files listed in `.worktreeinclude`.
@@ -83,3 +87,4 @@ How to bring up what the tests and the running change need, and where to look wh
 - **Health check**: the command that shows the environment is ready.
 - **Local signals**: where local logs, metrics and traces live.
 - **Remote signals**: optional; external tools (Sentry, LGTM) the agent may consult.
+- **Concurrency**: `- Max implementers: <n>` caps the implementer subagents `implement-spec` runs at once. Without the line, there is no limit.
