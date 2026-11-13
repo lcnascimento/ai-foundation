@@ -1,5 +1,5 @@
 {
-  "description": "foundation hooks: the git guardrail (ADR-0009) and the Principles index.",
+  "description": "foundation hooks: the git guardrail (ADR-0009), the Principles index and AFK mode.",
   "hooks": {
     "PreToolUse": [
       {
@@ -20,6 +20,11 @@
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/principles-index.sh\"",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/afk-mode.sh\"",
+            "timeout": 10
           }
         ]
       }
@@ -30,6 +35,11 @@
           {
             "type": "command",
             "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/principles-index.sh\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/afk-mode.sh\"",
             "timeout": 10
           }
         ]
