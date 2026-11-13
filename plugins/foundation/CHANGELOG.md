@@ -9,6 +9,17 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.10.0] - 2026-11-13
+
+### Changed
+
+- `retro` is model-invocable. With `AI_FOUNDATION_AFK=1` it files its candidates instead of presenting them: at
+  most 2, only Automated checks, Navigation and Information access; each deduplicated with `list_issues` (an
+  existing issue gets a comment), else created in `Backlog` with `improvement`, `needs-triage`, `retro` and a
+  `target` label, related to the origin issue. A Retro comment on the origin issue lists them, and a failure
+  never changes the delivery. Without the flag, `/retro` is unchanged.
+- `hooks/afk-mode.sh`: the AFK rule allows a fifth kind of AFK comment, Retro.
+
 ## [0.9.0] - 2026-11-12
 
 ### Added

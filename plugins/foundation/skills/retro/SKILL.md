@@ -1,7 +1,6 @@
 ---
 name: retro
-description: "Conduct a retrospective on a coding session."
-disable-model-invocation: true
+description: "Conduct a retrospective on a coding session. Use when the user asks for a retro, or as the last step of an AFK session when `implement`, `implement-spec` or `address-pr-feedback` call it."
 license: MIT
 metadata:
   upstream: mattpocock/skills
@@ -10,7 +9,7 @@ metadata:
   status: derived
 ---
 
-The user has asked for a **retrospective**. You are suggesting improvements to the coding agent's **environment** to improve future runs.
+The user, or in AFK mode the skill that called you, has asked for a **retrospective**. You are suggesting improvements to the coding agent's **environment** to improve future runs.
 
 ## Steps
 
@@ -28,7 +27,22 @@ The user has asked for a **retrospective**. You are suggesting improvements to t
 - **No-ops**: look for instructions in steering files that don't modify the agent's behavior. _Use when_ the steering files are large and unwieldy.
 - **Information access**: look for opportunities to increase the agent's access to information. Teeing dev server logs, readonly access to third-party services. _Use when_ a crucial piece of information was not available to the agent.
 
-4. Present these candidates to the user, in order of severity.
+4. Present these candidates to the user, in order of severity. In AFK mode, file them instead, as **AFK mode** below says.
+
+## AFK mode
+
+AFK mode is on when `AI_FOUNDATION_AFK` is `1` (`printenv AI_FOUNDATION_AFK`). With the flag off, skip this section. With it on, the skill that called you passed the **origin issue** (the Spec or issue the session worked on) and its PR, if any. Step 4 becomes:
+
+1. Keep at most 2 candidates, the most severe, and only from Automated checks, Navigation and Information access. With none left, stop: no issue, no comment.
+2. For each candidate, search the issue tracker for an open issue that asks for the same change (`list_issues` with a `query` on its key terms). When one exists, comment the new evidence on it instead of creating an issue.
+3. Otherwise, publish it to the issue tracker (`docs/agents/issue-tracker.md`):
+   - status `Backlog`;
+   - labels `improvement`, the `needs-triage` role of `docs/agents/triage-labels.md`, `retro`, and the `target` label naming the repo the change lands in: `ai-foundation` for a skill, hook or script of the ai-foundation plugins, else the Project's own repo. Create a missing label as `docs/agents/issue-tracker.md` says;
+   - a `related` relation to the origin issue;
+   - a description in the Project's language with the problem observed, the evidence (origin issue, PR, and the excerpt of the session that went wrong), the category and the proposed change.
+4. Post one Retro comment on the origin issue, listing each issue created or commented on.
+
+A failure here never changes the delivery: on any error, stop the retro and leave the origin issue, its status and the PR as they are.
 
 ## Reference
 
