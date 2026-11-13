@@ -68,7 +68,7 @@ Refer to issues by title in prose; the identifier (`{{team_key}}-12`) and URL ri
 
 ## Work lifecycle
 
-Skills that build a ticket (`implement`, `implement-spec`) name lifecycle roles. Each maps to a workflow status of team {{team_name}}, set with `save_issue` and `state: "<status>"`:
+Skills that work on a ticket (`implement`, `implement-spec`, `address-pr-feedback`) name lifecycle roles. Each maps to a workflow status of team {{team_name}}, set with `save_issue` and `state: "<status>"`:
 
 | Role | Status |
 | - | - |

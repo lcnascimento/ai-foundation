@@ -40,7 +40,7 @@ defined in [GLOSSARY.md](./GLOSSARY.md); decisions live in [docs/adr/](./docs/ad
 | Build | `tdd`, `implement`, `implement-spec`, `clean-worktrees` |
 | Verify and review | `verify`, `code-review` (the native `/code-review`, `/security-review` and `/simplify` complement it) |
 | Debug | `diagnosing-bugs`, `resolving-merge-conflicts` |
-| PR | `pr` |
+| PR | `pr`, `address-pr-feedback` |
 | Stack | `golang`, `nextjs` |
 
 Its 20 Principles reach every session through the same index hook. Load any Principle's full text with
