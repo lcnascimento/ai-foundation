@@ -9,12 +9,14 @@ Always. Linear is the only tracker.
 ## Detect
 
 - `.mcp.json`: the server whose `url` is on `mcp.linear.app`. Its key is `{{server}}`; with none, `{{server}}` is `linear`.
-- `docs/agents/issue-tracker.md`: its `team **<name>** (key \`<KEY>\`)` line is the previous team answer.
+- `docs/agents/issue-tracker.md`: its `team **<name>** (key \`<KEY>\`)` line is the previous team answer, and its `| integrate | \`<status>\` |` row the previous integrate answer.
 - `.envrc` and `.gitignore`: whether they exist and whether `.env` is already ignored (`git check-ignore -q .env`).
 
 ## Ask
 
 The Linear team that receives this Project's issues, as name and key. Recommend the previous answer, else `Engineering`/`ENG` when `engineering` is enabled; otherwise ask for the team of the Project's domain.
+
+The status of a ticket integrated into its spec's branch (the **integrate** role). Recommend the previous answer, else `In Review`.
 
 ## Render
 
@@ -46,7 +48,7 @@ dotenv_if_exists .env
 .env
 ```
 
-**`docs/agents/issue-tracker.md`**, owned Markdown, with `{{server}}`, `{{team_name}}` and `{{team_key}}` filled:
+**`docs/agents/issue-tracker.md`**, owned Markdown, with `{{server}}`, `{{team_name}}`, `{{team_key}}` and `{{integrate_status}}` filled:
 
 ````markdown
 # Issue tracker: Linear
@@ -71,9 +73,11 @@ Skills that build a ticket (`implement`, `implement-spec`) name lifecycle roles.
 | Role | Status |
 | - | - |
 | start | `In Progress` |
+| integrate | `{{integrate_status}}` |
 | hand off for review | `In Review` |
 | close | `Done` |
 
+- **Integrate**: a ticket of a spec whose branch has merged into the spec's integration branch. Its work reaches the default branch only through the spec's PR. The spec has no integrate role: that PR's closing line closes it on merge.
 - **Approval**: the merge of the work's PR is the user's approval. The PR body carries one `Closes <identifier>` line per issue it resolves, so Linear's forge integration closes each one on merge. When the user approves the work in the session instead, close each issue yourself.
 - **Missing status**: statuses belong to each team. When `list_issue_statuses` for team {{team_name}} has no `In Review` in any letter case, create it, typed `started` and placed after the team's other `started` statuses. The MCP server can't create statuses, so call Linear's API with `LINEAR_API_KEY`, never printing it:
 
