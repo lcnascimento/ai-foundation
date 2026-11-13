@@ -41,7 +41,7 @@ rule_fragments=(
   "all your questions, numbered, in a single comment"
   "end the session"
   "Never close a Spec"
-  "Assumption, BLOCKED/TRIED/NEED, Questions and Delivery"
+  "five kinds of AFK comment: Assumption, BLOCKED/TRIED/NEED, Questions, Delivery and Retro"
   "in the Project's language"
   "no signature"
 )

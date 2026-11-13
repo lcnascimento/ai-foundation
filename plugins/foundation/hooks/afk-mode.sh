@@ -17,7 +17,7 @@ No human is in this session (AI_FOUNDATION_AFK=1). Nobody will answer a question
 - Stop only for the stops of the know-when-to-stop Principle (load it with `foundation:principles know-when-to-stop`), and report each stop as a BLOCKED/TRIED/NEED block.
 - When you must stop, put all your questions, numbered, in a single comment, then end the session.
 - Never close a Spec: merging its PR is the approval.
-- Post only four kinds of AFK comment: Assumption, BLOCKED/TRIED/NEED, Questions and Delivery. Write them in the Project's language, with no signature, on the Spec or the Ticket they concern.
+- Post only five kinds of AFK comment: Assumption, BLOCKED/TRIED/NEED, Questions, Delivery and Retro. Write them in the Project's language, with no signature, on the Spec or the Ticket they concern.
 EOF
 
 json_escape() {
