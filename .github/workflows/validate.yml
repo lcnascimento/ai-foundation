@@ -44,6 +44,9 @@ jobs:
       - name: Test the worktree script
         run: python3 tests/scripts/test_worktree.py
 
+      - name: Test the max-implementers script
+        run: python3 tests/scripts/test_max_implementers.py
+
   principles-and-provenance:
     # Both need PyYAML; one job installs it once.
     runs-on: ubuntu-latest
