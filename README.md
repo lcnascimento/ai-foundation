@@ -37,7 +37,7 @@ defined in [GLOSSARY.md](./GLOSSARY.md); decisions live in [docs/adr/](./docs/ad
 | Investigation | `how`, `why`, `teach` |
 | Spec and tickets | `to-spec`, `to-tickets`, `triage` |
 | Design | `codebase-design`, `improve-codebase-architecture` |
-| Build | `tdd`, `implement`, `implement-spec` (manual), `clean-worktrees` |
+| Build | `tdd`, `implement`, `implement-spec`, `clean-worktrees` |
 | Verify and review | `verify`, `code-review` (the native `/code-review`, `/security-review` and `/simplify` complement it) |
 | Debug | `diagnosing-bugs`, `resolving-merge-conflicts` |
 | PR | `pr` |

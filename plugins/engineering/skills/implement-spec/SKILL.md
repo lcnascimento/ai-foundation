@@ -1,7 +1,6 @@
 ---
 name: implement-spec
-description: "Implement the result of /to-spec and /to-tickets in code."
-disable-model-invocation: true
+description: "Implement a Spec and its Tickets from /to-spec and /to-tickets in code. Use when asked to implement a Spec, or when one is delegated to you in an AFK session."
 license: MIT
 metadata:
   upstream: mattpocock/skills
@@ -20,9 +19,9 @@ The tickets are not a list of steps. They are a **task graph** with blocking rel
 
 Communication to and from subagents should be sparse. Communicate primarily through **context pointers**: to the spec, tickets, research notes, and previous commits. Don't duplicate information already available via pointers. Report progress on the spec as comments, and touch the spec issue itself only to change its state.
 
-Every branch and worktree directory is named after its issue identifier in lowercase (`abc-12`): the integration branch after the spec, each implementer's branch after its ticket. Worktrees live in `<checkout>/.claude/worktrees/`, where `<checkout>` is the absolute path of the user's checkout. Create and remove them with the **worktree script**, `bash "${CLAUDE_SKILL_DIR}/../../scripts/worktree.sh"`: `add <id>` creates the branch and its worktree, sets it up as `docs/agents/environment.md` says, and prints its path last; `remove <id>` removes both, refusing uncommitted changes or unmerged commits as `git branch -d` does. Issues move through the **work lifecycle** in `docs/agents/issue-tracker.md` (**start**, **hand off for review**, **close**).
+Every branch and worktree directory is named after its issue identifier in lowercase (`abc-12`): the integration branch after the spec, each implementer's branch after its ticket. Worktrees live in `<checkout>/.claude/worktrees/`, where `<checkout>` is the absolute path of the user's checkout. Create and remove them with the **worktree script**, `bash "${CLAUDE_SKILL_DIR}/../../scripts/worktree.sh"`: `add <id>` creates the branch and its worktree, sets it up as `docs/agents/environment.md` says, and prints its path last; `remove <id>` removes both, refusing uncommitted changes or unmerged commits as `git branch -d` does. Issues move through the **work lifecycle** in `docs/agents/issue-tracker.md` (**start**, **integrate**, **hand off for review**, **close**). A work lifecycle with no **integrate** row uses **hand off for review** for it.
 
-**Implementer subagents** should be run in the background where possible for maximum concurrency.
+**Implementer subagents** should be run in the background where possible for maximum concurrency, up to the **implementer limit**: the number `bash "${CLAUDE_SKILL_DIR}/scripts/max-implementers.sh"` prints from the `Max implementers` line of `docs/agents/environment.md`. When it prints nothing, there is no limit; when it fails, stop and report its error. Never run more implementer subagents at once than the limit, and launch the next ticket of the **frontier** only when one finishes.
 
 ## Steps
 
@@ -38,9 +37,9 @@ Every branch and worktree directory is named after its issue identifier in lower
    - calls the Skill tool with `tdd` to build the ticket;
    - merges the integration branch tip into its own branch before reporting done
 
-5. Once an **implementer subagent** completes, merge its work to the integration branch with a **merger subagent**, working in the integration worktree, which runs the **merge gate** on the merge and reports its verdict without fixing anything. Merge one branch at a time, and start the next merge only on `green`. On `green`, move the ticket to **hand off for review**. Handle `red` as the **merge gate** says. A red the tickets expect does not block the next merge: the batches of a wide refactor that `to-tickets` sequenced to turn green only at their integrate ticket. Once the **merger subagent** has merged a branch, whatever the verdict, remove its worktree and branch with **worktree script** `remove <ticket id>`, run from the integration worktree.
+5. Once an **implementer subagent** completes, merge its work to the integration branch with a **merger subagent**, working in the integration worktree with `git merge --no-ff <ticket id>`, so every ticket leaves a merge commit, which runs the **merge gate** on the merge and reports its verdict without fixing anything. Merge one branch at a time, and start the next merge only on `green`. On `green`, move the ticket to **integrate**. Handle `red` as the **merge gate** says. A red the tickets expect does not block the next merge: the batches of a wide refactor that `to-tickets` sequenced to turn green only at their integrate ticket. Once the **merger subagent** has merged a branch, whatever the verdict, remove its worktree and branch with **worktree script** `remove <ticket id>`, run from the integration worktree.
 
-6. If this changes the **frontier** of available tickets, kick off more **implementer subagents** to work on the new tickets. This allows for maximum concurrency.
+6. If this changes the **frontier** of available tickets, kick off more **implementer subagents** to work on the new tickets, within the **implementer limit**. This allows for maximum concurrency.
 
 7. Once all tickets are complete, call the Skill tool with `engineering:verify` and then with `engineering:code-review` on the integration branch. Fix all issues raised by the verification and the code review in a single **implementer subagent**. Put the `Verification` block in the PR body.
 
@@ -70,3 +69,12 @@ The **CI gate** waits for the PR's CI verdict on the integration branch's head c
 4. When a check goes red, rerun the failed jobs of each failed run once (`gh run rerun <run-id> --failed` on GitHub) and wait again, so a flaky check doesn't block. Red again is `red`, reported with the failing check and its logs, read with the logs command in `docs/agents/forge.md` (`gh run view --log-failed` on GitHub).
 
 On `red`, fix the cause in a new **implementer subagent**, whose work goes back through a **merger subagent**, the **merge gate** and the **CI gate**. The PR stays ready meanwhile, so each push starts its CI. A check turns green only through a fix in the code under test, as in `engineering:verify` step 3. When the same failure comes back after a fix, stop under `know-when-to-stop`: move the PR back to draft (`gh pr ready --undo` on GitHub) and report the `BLOCKED` block with the failing check and its logs.
+
+## AFK mode
+
+AFK mode is on when `AI_FOUNDATION_AFK` is `1` (`printenv AI_FOUNDATION_AFK`); the foundation plugin then injects an `# AFK mode` rule into the session. Decide it from the flag alone, never from whether the checkout is a linked worktree. With the flag off, skip this section. With it on, these rules replace the matching steps above:
+
+- **Branch**: the current worktree and branch are the integration branch, as the delegating agent opened them. In step 3, create no integration worktree or branch: run every git command on the integration branch from the current worktree, pass its path to every **merger subagent**, and never rename the current branch. In step 4, create each ticket's worktree from the current branch, under the current clone: **worktree script** `add <ticket id> --base <current branch> --reset`.
+- **Resume**: every run starts over from the tracker and git, never from what an earlier session remembers. In step 1, read the spec and its tickets from the tracker again and rewrite `spec.md`, even when the notes directory already has one. A ticket in the **integrate** status, or with a merge commit on the integration branch (`git log --merges --grep "^Merge branch '<ticket id>'" HEAD` prints one, from the integration worktree, even after its branch is gone), is integrated: move it to **integrate** if it isn't there, remove any worktree and branch left of it with **worktree script** `remove <ticket id>`, and never implement it again. A ticket in the **start** status is not integrated: its earlier attempt is discarded, and step 4 recreates its worktree with `--reset`. When the integration branch already has an open PR (`gh pr view` on GitHub), it is the spec's PR: push to it and never open another.
+- **Seams**: the seams the Spec or the Ticket names count as confirmed with the user, so `tdd`'s confirmation is already met. Tell each **implementer subagent** so, and that before the first test at a seam neither names, it posts the seam, with what it catches and what it misses, as an Assumption comment on its Ticket, and then treats it as confirmed.
+- **Review point**: in step 7, pass `engineering:code-review` the merge-base of the integration branch with `origin`'s default branch as its fixed point (`git merge-base HEAD origin/<default branch>`, after `git fetch origin`, from the integration worktree).
