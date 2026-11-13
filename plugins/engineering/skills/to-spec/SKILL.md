@@ -1,6 +1,7 @@
 ---
 name: to-spec
-description: "Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed."
+description: "Turn the current conversation, and optionally a /wayfinder map, into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed."
+argument-hint: "[wayfinder map URL or identifier]"
 disable-model-invocation: true
 license: MIT
 metadata:
@@ -13,6 +14,28 @@ metadata:
 This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
 
 The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-ai-foundation`.
+
+## With a map
+
+The user may pass a `/wayfinder` map (URL or identifier): the issue labelled `wayfinder:map`, with child tickets, laid out as the tracker doc's "Wayfinding operations" section describes. Without one, skip this section.
+
+Before the process, spin up one subagent to read the map, so its tickets stay out of this session. Brief it to load the map body, list its child tickets, and read the resolution comment of each closed ticket in Decisions so far, then return only:
+
+- the Destination;
+- per decision: the ticket's title, link and resolution, in a few lines;
+- the Out of scope section;
+- the Not yet specified section, with any HTML comment placeholder removed;
+- the titles and links of the open child tickets.
+
+When Not yet specified is not empty, or a child ticket is still open, stop: publish nothing and list each missing item and open ticket for the user. Those are decisions still open, and the spec doesn't make them; they get resolved with `/wayfinder` first.
+
+Otherwise the map feeds the spec, on top of the conversation:
+
+- the Destination is the goal the Problem Statement and Solution aim at;
+- each resolution is an Implementation Decision, with its ticket's link;
+- the map's Out of scope is the spec's Out of scope.
+
+After publishing, relate the spec to the map: `save_issue` on the spec with `relatedTo: [<map identifier>]`.
 
 ## Process
 
