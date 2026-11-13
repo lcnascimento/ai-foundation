@@ -25,7 +25,13 @@ gh api "repos/<owner>/<repo>/commits/<sha>/check-runs" \
   --jq '.check_runs[] | select(.name | test("sonar"; "i")) | {name, conclusion, summary: .output.summary, text: .output.text}'
 ```
 
-Review threads, PR comments, review bodies and the head commit's date, in one query:
+The time of the last push, the earliest check suite created on the head commit (`<sha>` is `headRefOid`), from any app:
+
+```bash
+gh api "repos/<owner>/<repo>/commits/<sha>/check-suites" --jq '[.check_suites[].created_at] | min'
+```
+
+Review threads, PR comments, review bodies and the head commit's date, the fallback when the head commit has no check suite, in one query:
 
 ```bash
 gh api graphql -F owner=<owner> -F repo=<repo> -F number=<number> -f query='
@@ -44,7 +50,7 @@ query($owner:String!, $repo:String!, $number:Int!) {
 }'
 ```
 
-An item is a thread with `isResolved: false` whose last comment's author is not your login, and a comment or a non-empty review body by someone else with `createdAt`/`submittedAt` after the head commit's `committedDate`.
+An item is a thread with `isResolved: false` whose last comment's author is not your login, and a comment or a non-empty review body by someone else with `createdAt`/`submittedAt` after the last push.
 
 ## Step 5
 

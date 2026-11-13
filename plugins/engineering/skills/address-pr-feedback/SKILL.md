@@ -17,7 +17,7 @@ Wait until no check on the PR's head commit is pending, so the set of red checks
 
 - each failed or cancelled check, with its failing logs (the logs command in `docs/agents/forge.md`). A Sonar check is red when its quality gate failed: read the failed conditions and the new issues from its check-run summary or its PR comment;
 - each unresolved review thread whose last comment is not yours. A thread you answered last waits on the reviewer, so it is not an item;
-- each PR comment and review body written by someone else after the head commit, the last push.
+- each PR comment and review body written by someone else after the last push: the creation time of the earliest check suite on the head commit, which the forge creates when the commit is pushed. With no check suite on it, use the head commit's date. A commit's own date is when it was made, not pushed, so it never stands in when a check suite exists.
 
 The step is done when every item has its full text, its author and, for a thread, its file and line. With no item, move the issue to **hand off for review** and stop.
 
