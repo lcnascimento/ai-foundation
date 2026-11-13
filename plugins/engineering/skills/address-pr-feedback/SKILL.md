@@ -34,7 +34,7 @@ A red check always gets **fix**: it turns green only through a fix in the code u
 
 ## 4. Fix, verify and push
 
-Fix every **fix** item on the current branch. Commit with the convention in `docs/agents/forge.md`, and cite the PR's issue in each commit (a `Refs: HLB-166` footer), so the history ties back to the Spec. Note the SHA that fixes each item.
+Fix every **fix** item on the current branch. Commit with the convention in `docs/agents/forge.md`, and cite the Spec in each commit (a `Refs: HLB-166` footer), so the history ties back to it: the PR's issue when it is the Spec, else its parent Spec when the issue is a Ticket that has one, else the PR's issue. Note the SHA that fixes each item.
 
 Call the Skill tool with `engineering:verify`, and update the PR body's `Verification` block when it has one. Push the branch. Leave the PR's draft state as it is.
 
