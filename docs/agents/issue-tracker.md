@@ -20,9 +20,11 @@ Skills that work on a ticket (`implement`, `implement-spec`, `address-pr-feedbac
 | Role | Status |
 | - | - |
 | start | `In Progress` |
+| integrate | `In Review` |
 | hand off for review | `In Review` |
 | close | `Done` |
 
+- **Integrate**: a ticket of a spec whose branch has merged into the spec's integration branch. Its work reaches the default branch only through the spec's PR. The spec has no integrate role: that PR's closing line closes it on merge.
 - **Approval**: the merge of the work's PR is the user's approval. The PR body carries one `Closes <identifier>` line per issue it resolves, so Linear's forge integration closes each one on merge. When the user approves the work in the session instead, close each issue yourself.
 - **Missing status**: statuses belong to each team. When `list_issue_statuses` for team AI Foundation has no `In Review` in any letter case, create it, typed `started` and placed after the team's other `started` statuses. The MCP server can't create statuses, so call Linear's API with `LINEAR_API_KEY`, never printing it:
 
