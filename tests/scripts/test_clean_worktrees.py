@@ -9,6 +9,7 @@ import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SCRIPT = os.path.join(ROOT, "plugins", "engineering", "skills", "clean-worktrees", "scripts", "clean-worktrees.py")
+GUARDRAIL = os.path.join(ROOT, "plugins", "foundation", "hooks", "git-guardrail.py")
 FAKES = os.path.join(ROOT, "tests", "fakes")
 URL = "https://github.com/acme/app.git"
 
@@ -39,7 +40,9 @@ class CleanWorktreesTest(unittest.TestCase):
         for state in ("merged", "open"):
             os.makedirs(os.path.join(self.prs, state))
         path = os.pathsep.join(dict.fromkeys([FAKES, os.path.dirname(shutil.which("git")), os.path.dirname(sys.executable)]))
-        self.env = {**os.environ, "PATH": path, "FAKE_GH_DIR": self.prs}
+        config = os.path.join(base, "config")
+        os.makedirs(config)
+        self.env = {**os.environ, "PATH": path, "FAKE_GH_DIR": self.prs, "CLAUDE_CONFIG_DIR": config}
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -54,9 +57,26 @@ class CleanWorktreesTest(unittest.TestCase):
         with open(os.path.join(self.prs, state, f"{branch}.json"), "w") as f:
             json.dump([{"headRefOid": head, "number": 7}], f)
 
-    def clean(self):
+    def install(self, script_dir, guardrails):
+        script = os.path.join(self.tmp.name, script_dir, "skills", "clean-worktrees", "scripts", "clean-worktrees.py")
+        os.makedirs(os.path.dirname(script))
+        shutil.copy(SCRIPT, script)
+        for guardrail_dir, source in guardrails.items():
+            hooks = os.path.join(self.tmp.name, guardrail_dir, "hooks")
+            os.makedirs(hooks)
+            shutil.copy(source, os.path.join(hooks, "git-guardrail.py"))
+        return script
+
+    def merged_worktree(self, branch):
+        path = self.worktree(branch)
+        git(path, "push", "--quiet", "origin", branch)
+        git(self.checkout, "merge", "--quiet", "--ff-only", branch)
+        git(self.checkout, "push", "--quiet", "origin", "main")
+        return path
+
+    def clean(self, script=SCRIPT):
         out = subprocess.run(
-            [sys.executable, SCRIPT], cwd=self.checkout, env=self.env, capture_output=True, text=True, check=False
+            [sys.executable, script], cwd=self.checkout, env=self.env, capture_output=True, text=True, check=False
         )
         self.assertEqual(out.returncode, 0, out.stderr)
         return out.stdout
@@ -129,6 +149,48 @@ class CleanWorktreesTest(unittest.TestCase):
 
         self.assertEqual(git(self.checkout, "rev-parse", "HEAD"), head)
         self.assertEqual(git(self.checkout, "branch", "--show-current"), "main")
+
+    def test_finds_the_guardrail_in_the_marketplace_layout(self):
+        script = self.install(
+            os.path.join("marketplace", "plugins", "engineering"),
+            {os.path.join("marketplace", "plugins", "foundation"): GUARDRAIL},
+        )
+        path = self.merged_worktree("abc-7")
+
+        output = self.clean(script)
+
+        self.assertFalse(os.path.exists(path))
+        self.assertIn("removed .claude/worktrees/abc-7 (abc-7)", output)
+
+    def test_loads_the_highest_foundation_version_in_the_cache_layout(self):
+        stale = os.path.join(self.tmp.name, "stale-guardrail.py")
+        with open(stale, "w") as f:
+            f.write('raise SystemExit("loaded foundation 0.9.0")\n')
+        foundation = os.path.join("cache", "acme", "foundation")
+        script = self.install(
+            os.path.join("cache", "acme", "engineering", "0.13.0"),
+            {
+                os.path.join(foundation, "0.9.0"): stale,
+                os.path.join(foundation, "0.10.0"): GUARDRAIL,
+                os.path.join(foundation, "latest"): stale,
+            },
+        )
+        path = self.merged_worktree("abc-8")
+
+        output = self.clean(script)
+
+        self.assertFalse(os.path.exists(path))
+        self.assertIn("removed .claude/worktrees/abc-8 (abc-8)", output)
+
+    def test_reports_a_missing_guardrail(self):
+        script = self.install(os.path.join("cache", "acme", "engineering", "0.13.0"), {})
+
+        out = subprocess.run(
+            [sys.executable, script], cwd=self.checkout, env=self.env, capture_output=True, text=True, check=False
+        )
+
+        self.assertEqual(out.returncode, 1)
+        self.assertEqual(out.stderr.strip(), "clean-worktrees: the foundation plugin's git-guardrail.py was not found")
 
 
 if __name__ == "__main__":
