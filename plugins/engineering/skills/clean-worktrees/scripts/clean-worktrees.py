@@ -1,38 +1,32 @@
 #!/usr/bin/env python3
 
 import importlib.util
-import json
 import os
 import subprocess
 import sys
 from pathlib import Path
 
 GUARDRAIL = Path("hooks") / "git-guardrail.py"
-PLUGINS_DIR = Path(__file__).resolve().parents[4]
+PLUGIN_ROOT = Path(__file__).resolve().parents[3]
 
 
-def sibling_guardrail():
-    path = PLUGINS_DIR / "foundation" / GUARDRAIL
-    return path if path.is_file() else None
+def version(name):
+    parts = name.split(".")
+    return tuple(map(int, parts)) if all(part.isdigit() for part in parts) else None
 
 
-def installed_guardrail():
-    config = Path(os.environ.get("CLAUDE_CONFIG_DIR") or Path.home() / ".claude")
-    try:
-        installed = json.loads((config / "plugins" / "installed_plugins.json").read_text())["plugins"]
-    except (OSError, ValueError, KeyError):
-        installed = {}
-    for key, installs in installed.items():
-        if key.startswith("foundation@"):
-            for install in installs:
-                path = Path(install.get("installPath", "")) / GUARDRAIL
-                if path.is_file():
-                    return path
-    return None
+def find_guardrail():
+    marketplace_guardrail = PLUGIN_ROOT.parent / "foundation" / GUARDRAIL
+    if marketplace_guardrail.is_file():
+        return marketplace_guardrail
+    cache = PLUGIN_ROOT.parent.parent / "foundation"
+    cached = {version(d.name): d / GUARDRAIL for d in cache.iterdir()} if cache.is_dir() else {}
+    found = [(v, path) for v, path in cached.items() if v and path.is_file()]
+    return max(found)[1] if found else None
 
 
 def load_guardrail():
-    path = sibling_guardrail() or installed_guardrail()
+    path = find_guardrail()
     if not path:
         sys.exit("clean-worktrees: the foundation plugin's git-guardrail.py was not found")
     spec = importlib.util.spec_from_file_location("git_guardrail", path)

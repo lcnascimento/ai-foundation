@@ -9,6 +9,15 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.13.1] - 2026-11-14
+
+### Fixed
+
+- `clean-worktrees`: the script finds the `foundation` plugin's `git-guardrail.py` in the versioned plugin cache
+  (`<cache>/<marketplace>/foundation/<version>/hooks/`), picking the highest numeric version, as well as next to
+  the Marketplace checkout. It no longer reads `installed_plugins.json`, which a seed installed with
+  `CLAUDE_CODE_PLUGIN_CACHE_DIR` keeps outside `$CLAUDE_CONFIG_DIR`.
+
 ## [0.13.0] - 2026-11-13
 
 ### Changed
