@@ -16,12 +16,13 @@ def version(name):
 
 
 def find_guardrail():
-    marketplace = PLUGIN_ROOT.parent / "foundation" / GUARDRAIL
-    if marketplace.is_file():
-        return marketplace
-    foundation = PLUGIN_ROOT.parent.parent / "foundation"
-    cached = [d for d in foundation.iterdir() if version(d.name) and (d / GUARDRAIL).is_file()] if foundation.is_dir() else []
-    return max(cached, key=lambda d: version(d.name)) / GUARDRAIL if cached else None
+    marketplace_guardrail = PLUGIN_ROOT.parent / "foundation" / GUARDRAIL
+    if marketplace_guardrail.is_file():
+        return marketplace_guardrail
+    cache = PLUGIN_ROOT.parent.parent / "foundation"
+    cached = {version(d.name): d / GUARDRAIL for d in cache.iterdir()} if cache.is_dir() else {}
+    found = [(v, path) for v, path in cached.items() if v and path.is_file()]
+    return max(found)[1] if found else None
 
 
 def load_guardrail():

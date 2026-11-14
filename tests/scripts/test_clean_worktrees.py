@@ -40,9 +40,7 @@ class CleanWorktreesTest(unittest.TestCase):
         for state in ("merged", "open"):
             os.makedirs(os.path.join(self.prs, state))
         path = os.pathsep.join(dict.fromkeys([FAKES, os.path.dirname(shutil.which("git")), os.path.dirname(sys.executable)]))
-        config = os.path.join(base, "config")
-        os.makedirs(config)
-        self.env = {**os.environ, "PATH": path, "FAKE_GH_DIR": self.prs, "CLAUDE_CONFIG_DIR": config}
+        self.env = {**os.environ, "PATH": path, "FAKE_GH_DIR": self.prs}
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -74,10 +72,13 @@ class CleanWorktreesTest(unittest.TestCase):
         git(self.checkout, "push", "--quiet", "origin", "main")
         return path
 
-    def clean(self, script=SCRIPT):
-        out = subprocess.run(
+    def run_script(self, script):
+        return subprocess.run(
             [sys.executable, script], cwd=self.checkout, env=self.env, capture_output=True, text=True, check=False
         )
+
+    def clean(self, script=SCRIPT):
+        out = self.run_script(script)
         self.assertEqual(out.returncode, 0, out.stderr)
         return out.stdout
 
@@ -185,9 +186,7 @@ class CleanWorktreesTest(unittest.TestCase):
     def test_reports_a_missing_guardrail(self):
         script = self.install(os.path.join("cache", "acme", "engineering", "0.13.0"), {})
 
-        out = subprocess.run(
-            [sys.executable, script], cwd=self.checkout, env=self.env, capture_output=True, text=True, check=False
-        )
+        out = self.run_script(script)
 
         self.assertEqual(out.returncode, 1)
         self.assertEqual(out.stderr.strip(), "clean-worktrees: the foundation plugin's git-guardrail.py was not found")
