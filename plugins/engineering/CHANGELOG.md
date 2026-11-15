@@ -9,6 +9,25 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.14.0] - 2026-11-15
+
+### Added
+
+- `scripts/worktree-lock.sh acquire [--wait <seconds>] | release`: the **worktree lock**, at most one live agent
+  session per worktree. The lock is `$(git rev-parse --absolute-git-dir)/agent.lock`, created atomically, with
+  the owner's `CLAUDE_PID`, `CLAUDE_CODE_SESSION_ID` and `started_at`. `acquire` passes for the same session or
+  PID, takes over a lock whose PID is gone and logs it, and exits 3 naming the owner when another live session
+  holds it; `--wait` retries every 30 s. `release` removes only this session's lock.
+
+### Changed
+
+- `implement` and `implement-spec` take the worktree lock once their worktree exists and release it at hand-off.
+  `address-pr-feedback` takes it in a new step 0 and releases it on every stop. In AFK mode, a held lock is
+  waited on for up to 10 minutes and then reported in a BLOCKED/TRIED/NEED comment, without the Retro.
+- `implement`, in AFK mode: after CI is green, a final sweep collects the PR's feedback as
+  `address-pr-feedback` step 2 does, and runs `address-pr-feedback` in the same session when there is any,
+  before releasing the lock.
+
 ## [0.13.1] - 2026-11-14
 
 ### Fixed

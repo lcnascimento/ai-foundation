@@ -5,6 +5,14 @@ description: Address the feedback on the current branch's PR (red checks, a fail
 
 Work on the PR of the current branch, in the current worktree. Commit on this branch only: no new branch, no new worktree, no force-push. The forge and its commands are in `docs/agents/forge.md`; the work lifecycle roles (**start**, **hand off for review**) are in `docs/agents/issue-tracker.md`. The GitHub commands for each step are in [references/github.md](references/github.md); on another forge, use its equivalent.
 
+## 0. Lock the worktree
+
+Take the **worktree lock**, so no other agent session works in this worktree at the same time: `bash "${CLAUDE_SKILL_DIR}/../../scripts/worktree-lock.sh" acquire`. It passes when the lock is free, is already this session's (as when `implement` calls this skill), or belongs to a dead process. It exits 3 when another live session holds it, and names that session's PID, session ID and start time. In AFK mode, run `acquire --wait 600` instead, which retries every 30 s for up to 10 minutes, in the background when it can outlast the shell timeout.
+
+When it still exits 3, stop. Locally, tell the user who holds the worktree. In AFK mode, post a BLOCKED/TRIED/NEED comment on the PR naming that owner, and end the session without the Retro: the owner's session collects the feedback before it releases the lock.
+
+Every stop of this skill from here on, at any step, releases the lock first: `bash "${CLAUDE_SKILL_DIR}/../../scripts/worktree-lock.sh" release`.
+
 ## 1. Find the PR and its issue
 
 Find the open PR whose head is the current branch. With none, there is no feedback to address: say so and stop.
@@ -59,7 +67,7 @@ Leave every thread unresolved: the reviewer decides when the conversation ends. 
 
 ## 7. Hand off
 
-Move the PR's issue to **hand off for review**. Never close it: the PR's merge is the approval.
+Move the PR's issue to **hand off for review**. Never close it: the PR's merge is the approval. Release the **worktree lock**.
 
 ## 8. Retro
 
