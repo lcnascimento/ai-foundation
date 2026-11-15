@@ -9,6 +9,14 @@ Principle, or changes the Project setup contract; minor adds a skill, Principle 
 A major entry always carries a **Migration** section with the steps to take in each Project (usually:
 re-run `/setup-ai-foundation`).
 
+## [0.15.0] - 2026-11-15
+
+### Changed
+
+- `pr`: the PR body template gains a **Pre-Merge Checklist** (out-of-band actions the merge depends on and CI does
+  not gate) and a **Post-Merge Checklist** (actions that roll the change out and prove it), each a `- [ ]` task
+  list with the exact command, or `None.`. The skill is now derived (`metadata.status: derived`, ADR-0001).
+
 ## [0.14.0] - 2026-11-15
 
 ### Added
