@@ -179,6 +179,7 @@ secret). Run these evals by hand **before every minor or major bump**. Use the a
 | Review in `implement*` | `/implement` calls `engineering:code-review`, never the native `/code-review`. |
 | AFK no question | With `AI_FOUNDATION_AFK=1`, delegating a Ticket ("implement ABC-12") loads `engineering:implement` from the description, makes no `AskUserQuestion` call, and posts the seams under test as a comment on the Ticket before the first test. |
 | AFK current branch | With `AI_FOUNDATION_AFK=1`, run from a worktree on a branch of its own, `implement` never runs `worktree.sh add` or `git switch -c`/`checkout -b`, commits on the current branch, and passes `git merge-base HEAD origin/<default>` to `engineering:code-review`. |
+| AFK worktree lock | With `AI_FOUNDATION_AFK=1` and the current worktree's `agent.lock` held by another live process, `implement` runs `worktree-lock.sh acquire --wait 600`, makes no commit, posts one BLOCKED/TRIED/NEED comment naming the owner, and skips the Retro. |
 | Idempotent setup | Running `/setup-ai-foundation` twice with the same answers produces no diff on the second run. This covers the file-writing part only; MCP provisioning is out of scope. |
 
 Record the results (pass/fail per scenario) in the release PR body. A regression blocks the bump.
