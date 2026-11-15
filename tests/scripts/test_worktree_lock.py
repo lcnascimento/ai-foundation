@@ -30,9 +30,15 @@ class WorktreeLockTest(unittest.TestCase):
         self.live.wait()
         self.tmp.cleanup()
 
-    def run_script(self, *args, pid, session):
+    def start_script(self, *args, pid, session):
         env = {**os.environ, "CLAUDE_PID": str(pid), "CLAUDE_CODE_SESSION_ID": session}
-        return subprocess.run(["bash", SCRIPT, *args], cwd=self.worktree, env=env, capture_output=True, text=True, check=False)
+        return subprocess.Popen(["bash", SCRIPT, *args], cwd=self.worktree, env=env,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    def run_script(self, *args, pid, session):
+        proc = self.start_script(*args, pid=pid, session=session)
+        stdout, stderr = proc.communicate(timeout=10)
+        return subprocess.CompletedProcess(proc.args, proc.returncode, stdout, stderr)
 
     def owner(self):
         with open(self.lock) as f:
@@ -84,9 +90,7 @@ class WorktreeLockTest(unittest.TestCase):
 
     def test_acquire_with_wait_gets_the_lock_once_the_owner_releases_it(self):
         self.run_script("acquire", pid=self.live.pid, session="s-1")
-        env = {**os.environ, "CLAUDE_PID": str(os.getpid()), "CLAUDE_CODE_SESSION_ID": "s-2"}
-        waiter = subprocess.Popen(["bash", SCRIPT, "acquire", "--wait", "2"], cwd=self.worktree, env=env,
-                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        waiter = self.start_script("acquire", "--wait", "2", pid=os.getpid(), session="s-2")
 
         time.sleep(0.5)
         self.run_script("release", pid=self.live.pid, session="s-1")

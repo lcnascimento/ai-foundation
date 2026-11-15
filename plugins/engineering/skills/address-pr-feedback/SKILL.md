@@ -7,11 +7,11 @@ Work on the PR of the current branch, in the current worktree. Commit on this br
 
 ## 0. Lock the worktree
 
-Take the **worktree lock**, so no other agent session works in this worktree at the same time: `bash "${CLAUDE_SKILL_DIR}/../../scripts/worktree-lock.sh" acquire`. It passes when the lock is free, is already this session's (as when `implement` calls this skill), or belongs to a dead process. It exits 3 when another live session holds it, and names that session's PID, session ID and start time. In AFK mode, run `acquire --wait 600` instead, which retries every 30 s for up to 10 minutes, in the background when it can outlast the shell timeout.
+Take the **worktree lock**, so no other agent session works in this worktree at the same time: `bash "${CLAUDE_SKILL_DIR}/../../scripts/worktree-lock.sh" acquire`. It passes when this session already holds it, and exits 3 when another live session does, printing that owner. In AFK mode, run `acquire --wait 600` instead, in the background, since it retries every 30 s for up to 10 minutes.
 
 When it still exits 3, stop. Locally, tell the user who holds the worktree. In AFK mode, post a BLOCKED/TRIED/NEED comment on the PR naming that owner, and end the session without the Retro: the owner's session collects the feedback before it releases the lock.
 
-Every stop of this skill from here on, at any step, releases the lock first: `bash "${CLAUDE_SKILL_DIR}/../../scripts/worktree-lock.sh" release`.
+Every stop of this skill from here on, at any step, releases the lock first: `bash "${CLAUDE_SKILL_DIR}/../../scripts/worktree-lock.sh" release`. When `implement` called this skill in its final sweep, it owns the lock and the Retro: skip the release and step 8, and return to it.
 
 ## 1. Find the PR and its issue
 
