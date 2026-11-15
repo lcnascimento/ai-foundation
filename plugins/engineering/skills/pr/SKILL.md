@@ -11,7 +11,7 @@ metadata:
   upstream: mattpocock/skills
   path: skills/engineering/pr/SKILL.md
   sha: 49dd158d1076134a641b33efb035946536778336
-  status: community
+  status: derived
 ---
 
 Use this template for writing the PR body:
@@ -35,6 +35,14 @@ Use this template for writing the PR body:
 **Blast Radius:** <one-word description>
 
 <optional: potential ramifications of merge>
+
+## Pre-Merge Checklist
+
+- [ ] <action before merge, with its command or link>
+
+## Post-Merge Checklist
+
+- [ ] <action after merge, with its command and expected result>
 ```
 
 ## Sections
@@ -173,3 +181,13 @@ Execution-based evidence is A-tier. Test results, console output. Show the exact
 Describe whether it's a one-way or two-way door. You can walk back through two-way doors, but not one-way doors. A PR that is cheap to roll back is lower risk. Changes that involve destructive actions or hard-to-reverse decisions are one-way doors.
 
 The blast radius is the potential impact or scope of the changes introduced by this PR. Consider all possibilities. Examples are layout shift, breakages for consumers, mobile responsiveness, etc.
+
+### Pre-Merge Checklist
+
+The out-of-band actions the merge depends on and CI does not gate: a secret or variable created, a dependent PR merged first, a plan output reviewed, a manual migration. One `- [ ]` task per action, in run order, with the exact command or link. The PR merges only once every box is checked.
+
+### Post-Merge Checklist
+
+The actions that roll the change out and prove it once it lands on the default branch: an apply, a deploy, a sync to watch, a smoke test, a cleanup, a follow-up issue. One `- [ ]` task per action, in run order, with the exact command and the observable result that marks it done (e.g. "app `x` is `Synced`/`Healthy`").
+
+Derive both lists from the diff: every out-of-band step the change needs before or after merge is accounted for in one of them. When a list has no action, write `None.` under its heading so the reviewer sees it was considered.
